@@ -1,0 +1,65 @@
+{
+  "tokens": [
+    {
+      "id": 1758350295068,
+      "name": "HEMI",
+      "slug": "hemi",
+      "topToday": 55,
+      "topYesterday": 55,
+      "volumeToday": 820082208.1898586,
+      "volumeYesterday": 821150722.3474069,
+      "lastUpdated": "2025-09-20T17:20:00.476Z"
+    },
+    {
+      "id": 1758350562749,
+      "name": "TRADOOR",
+      "slug": "tradoor",
+      "topToday": 5,
+      "topYesterday": 55,
+      "volumeToday": 653597253.2885389,
+      "volumeYesterday": 653243092.2112917,
+      "lastUpdated": "2025-09-20T17:20:01.794Z"
+    },
+    {
+      "id": 1758362944177,
+      "name": "PTB",
+      "slug": "portaltobitcoin",
+      "topToday": 55,
+      "topYesterday": 55,
+      "volumeToday": 487995902.4595005,
+      "volumeYesterday": 487897087.8663599,
+      "lastUpdated": "2025-09-20T17:20:03.114Z"
+    },
+    {
+      "id": 1758363199720,
+      "name": "PRAI",
+      "slug": "privasea-ai",
+      "topToday": 55,
+      "topYesterday": 55,
+      "volumeToday": 139859634.10070392,
+      "volumeYesterday": 139124321.7552031,
+      "lastUpdated": "2025-09-20T17:20:04.499Z"
+    },
+    {
+      "id": 1758363239984,
+      "name": "SAROS",
+      "slug": "saros",
+      "topToday": 55,
+      "topYesterday": 55,
+      "volumeToday": 42728697.61473003,
+      "volumeYesterday": 42734083.66406424,
+      "lastUpdated": "2025-09-20T17:20:05.887Z"
+    },
+    {
+      "id": 1758363326268,
+      "name": "K",
+      "slug": "sidekick-fans",
+      "topToday": 1,
+      "topYesterday": 1,
+      "volumeToday": 4510522.45008767,
+      "volumeYesterday": 4468729.66952292,
+      "lastUpdated": "2025-09-20T17:20:07.216Z"
+    }
+  ],
+  "lastUpdated": "2025-09-20T17:20:08.217Z"
+}

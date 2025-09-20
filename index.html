@@ -50,6 +50,51 @@
             font-size: 1.1rem;
         }
 
+        .admin-login {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+        }
+
+        .admin-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .admin-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .admin-badge.admin {
+            background: linear-gradient(135deg, #68d391, #38b2ac);
+            color: white;
+        }
+
+        .admin-badge.viewer {
+            background: linear-gradient(135deg, #a0aec0, #718096);
+            color: white;
+        }
+
+        .login-form {
+            display: flex;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .hidden {
+            display: none;
+        }
+
         .add-token-section {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
@@ -303,7 +348,28 @@
             </div>
         </div>
 
-        <div class="add-token-section">
+        <div class="admin-login">
+            <div class="admin-status">
+                <span>Status:</span>
+                <span class="admin-badge viewer" id="adminBadge">👁️ Viewer</span>
+                <span id="adminInfo">You can view tokens but cannot modify them</span>
+            </div>
+            <div class="login-form" id="loginForm">
+                <div class="form-group">
+                    <label for="adminPassword">Admin Password</label>
+                    <input type="password" id="adminPassword" placeholder="Enter admin password">
+                </div>
+                <button type="button" class="btn btn-primary" onclick="verifyAdmin()">Login as Admin</button>
+            </div>
+            <div id="adminActions" class="hidden">
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <button type="button" class="btn btn-danger" onclick="logout()" style="font-size: 14px; padding: 8px 16px;">Logout</button>
+                    <div id="scheduleInfo" style="font-size: 12px; color: #718096;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="add-token-section" id="addTokenSection">
             <h2 style="margin-bottom: 20px; color: #4a5568;">➕ Add New Token</h2>
             <form class="add-token-form" id="addTokenForm">
                 <div class="form-group">
@@ -331,8 +397,16 @@
         <div class="tokens-container">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="color: #4a5568;">📊 Token Dashboard</h2>
-                <div class="refresh-all">
-                    <button class="btn btn-success" onclick="refreshAllVolumes()">🔄 Refresh All Volumes</button>
+                <div class="refresh-all" style="display: flex; gap: 10px;">
+                    <div id="adminTriggerButton" class="hidden">
+                        <button class="btn btn-primary" onclick="triggerDailyUpdate()" style="background: linear-gradient(135deg, #9f7aea, #667eea);">⏰ Trigger Daily Update</button>
+                    </div>
+                    <div id="adminExportButton" class="hidden">
+                        <button class="btn btn-primary" onclick="exportTokenReport()">📋 Export Report</button>
+                    </div>
+                    <div id="adminRefreshButton" class="hidden">
+                        <button class="btn btn-success" onclick="refreshAllVolumes()">🔄 Refresh All Volumes</button>
+                    </div>
                 </div>
             </div>
 
@@ -345,63 +419,177 @@
     </div>
 
     <script>
-        let tokens = JSON.parse(localStorage.getItem('tokens')) || [];
+        let tokens = [];
+        let isAdminUser = false;
+        let adminPassword = '';
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
-            updateStats();
-            renderTokensTable();
+            loadTokensFromServer();
+            updateUI();
             
-            // Add form submission handler
-            document.getElementById('addTokenForm').addEventListener('submit', addToken);
+            // Auto-refresh every 30 seconds
+            setInterval(loadTokensFromServer, 30000);
         });
+
+        // Load tokens from server
+        async function loadTokensFromServer() {
+            try {
+                const response = await fetch('/api/tokens');
+                if (response.ok) {
+                    tokens = await response.json();
+                    updateStats();
+                    renderTokensTable();
+                }
+            } catch (error) {
+                console.error('Error loading tokens:', error);
+            }
+        }
+
+        // Verify admin credentials
+        async function verifyAdmin() {
+            const password = document.getElementById('adminPassword').value;
+            if (!password) {
+                alert('Please enter admin password');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/admin/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+
+                const result = await response.json();
+                if (result.isAdmin) {
+                    isAdminUser = true;
+                    adminPassword = password;
+                    updateUI();
+                    document.getElementById('adminPassword').value = '';
+                    alert('✅ Admin login successful!');
+                } else {
+                    alert('❌ Invalid admin password');
+                }
+            } catch (error) {
+                alert('Error verifying admin credentials');
+            }
+        }
+
+        // Logout
+        function logout() {
+            isAdminUser = false;
+            adminPassword = '';
+            updateUI();
+        }
+
+        // Update UI based on admin status
+        function updateUI() {
+            const badge = document.getElementById('adminBadge');
+            const info = document.getElementById('adminInfo');
+            const loginForm = document.getElementById('loginForm');
+            const adminActions = document.getElementById('adminActions');
+            const addTokenSection = document.getElementById('addTokenSection');
+            const refreshButton = document.getElementById('adminRefreshButton');
+            const exportButton = document.getElementById('adminExportButton');
+            const triggerButton = document.getElementById('adminTriggerButton');
+
+            if (isAdminUser) {
+                badge.className = 'admin-badge admin';
+                badge.innerHTML = '👑 Admin';
+                info.textContent = 'You can add, edit, and delete tokens';
+                loginForm.classList.add('hidden');
+                adminActions.classList.remove('hidden');
+                addTokenSection.innerHTML = generateAddTokenForm();
+                refreshButton.classList.remove('hidden');
+                exportButton.classList.remove('hidden');
+                triggerButton.classList.remove('hidden');
+                loadScheduleInfo();
+            } else {
+                badge.className = 'admin-badge viewer';
+                badge.innerHTML = '👁️ Viewer';
+                info.textContent = 'You can view tokens but cannot modify them';
+                loginForm.classList.remove('hidden');
+                adminActions.classList.add('hidden');
+                addTokenSection.innerHTML = '<p style="text-align: center; color: #718096; font-style: italic;">Admin login required to add tokens</p>';
+                refreshButton.classList.add('hidden');
+                exportButton.classList.add('hidden');
+                triggerButton.classList.add('hidden');
+            }
+        }
+
+        // Generate add token form
+        function generateAddTokenForm() {
+            return `
+                <h2 style="margin-bottom: 20px; color: #4a5568;">➕ Add New Token</h2>
+                <form class="add-token-form" id="addTokenForm">
+                    <div class="form-group">
+                        <label for="tokenName">Token Name *</label>
+                        <input type="text" id="tokenName" placeholder="e.g., HEMI" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="tokenSlug">Token Slug * (for API)</label>
+                        <input type="text" id="tokenSlug" placeholder="e.g., hemi" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="topToday">Top Volume Today * (USD)</label>
+                        <input type="number" id="topToday" min="0" step="0.01" placeholder="e.g., 100000" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="topYesterday">Top Volume Yesterday * (USD)</label>
+                        <input type="number" id="topYesterday" min="0" step="0.01" placeholder="e.g., 150000" required>
+                    </div>
+                </form>
+                <div style="margin-top: 20px;">
+                    <button type="submit" form="addTokenForm" class="btn btn-primary" onclick="addToken(event)">Add Token</button>
+                </div>
+            `;
+        }
 
         async function addToken(e) {
             e.preventDefault();
             
+            if (!isAdminUser) {
+                alert('Admin login required');
+                return;
+            }
+
             const tokenName = document.getElementById('tokenName').value.trim();
             const tokenSlug = document.getElementById('tokenSlug').value.trim();
-            const topToday = parseInt(document.getElementById('topToday').value);
-            const topYesterday = parseInt(document.getElementById('topYesterday').value);
+            const topToday = parseFloat(document.getElementById('topToday').value);
+            const topYesterday = parseFloat(document.getElementById('topYesterday').value);
 
             if (!tokenName || !tokenSlug || !topToday || !topYesterday) {
                 alert('Please fill in all required fields!');
                 return;
             }
 
-            // Check if token already exists
-            if (tokens.find(token => token.slug.toLowerCase() === tokenSlug.toLowerCase())) {
-                alert('Token with this slug already exists!');
-                return;
+            try {
+                const response = await fetch('/api/tokens', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        token: { name: tokenName, slug: tokenSlug, topToday, topYesterday },
+                        adminPassword
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // Reset form
+                    document.getElementById('addTokenForm').reset();
+                    // Reload tokens
+                    await loadTokensFromServer();
+                    // Fetch volume for new token
+                    await fetchTokenVolume(result.token.id);
+                    alert('✅ Token added successfully!');
+                } else {
+                    alert('❌ Error: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error adding token: ' + error.message);
             }
-
-            const newToken = {
-                id: Date.now(),
-                name: tokenName.toUpperCase(),
-                slug: tokenSlug.toLowerCase(),
-                topToday: parseFloat(topToday),
-                topYesterday: parseFloat(topYesterday),
-                volumeToday: null,
-                volumeYesterday: null,
-                lastUpdated: null
-            };
-
-            tokens.push(newToken);
-            saveTokens();
-            
-            // Reset form
-            document.getElementById('addTokenForm').reset();
-            
-            // Update display
-            updateStats();
-            renderTokensTable();
-            
-            // Fetch volume for the new token
-            await fetchTokenVolume(newToken.id);
-        }
-
-        function saveTokens() {
-            localStorage.setItem('tokens', JSON.stringify(tokens));
         }
 
         function updateStats() {
@@ -424,7 +612,7 @@
             if (tokens.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
-                        No tokens added yet. Add your first token above! 📈
+                        No tokens added yet. ${isAdminUser ? 'Add your first token above!' : 'Admin needs to add tokens.'} 📈
                     </div>
                 `;
                 return;
@@ -442,7 +630,7 @@
                             <th>Trading Volume Yesterday</th>
                             <th>Trading Volume Comparison</th>
                             <th>Last Updated</th>
-                            <th>Actions</th>
+                            ${isAdminUser ? '<th>Actions</th>' : ''}
                         </tr>
                     </thead>
                     <tbody>
@@ -455,7 +643,7 @@
         }
 
         function generateTokenRow(token) {
-            const topComparison = getComparison(token.topYesterday, token.topToday); // Normal comparison for volumes
+            const topComparison = getComparison(token.topYesterday, token.topToday);
             const volumeComparison = getComparison(token.volumeYesterday, token.volumeToday);
             const lastUpdated = token.lastUpdated ? new Date(token.lastUpdated).toLocaleString() : 'Never';
             
@@ -469,11 +657,12 @@
                     <td class="volume-display">${token.volumeYesterday !== null ? formatCurrency(token.volumeYesterday) : 'Not set'}</td>
                     <td>${volumeComparison}</td>
                     <td>${lastUpdated}</td>
+                    ${isAdminUser ? `
                     <td class="actions">
                         <button class="btn btn-success" onclick="fetchTokenVolume(${token.id})" style="font-size: 12px; padding: 6px 12px;">🔄</button>
                         <button class="btn btn-primary" onclick="editToken(${token.id})" style="font-size: 12px; padding: 6px 12px;">✏️</button>
                         <button class="btn btn-danger" onclick="deleteToken(${token.id})" style="font-size: 12px; padding: 6px 12px;">🗑️</button>
-                    </td>
+                    </td>` : ''}
                 </tr>
             `;
         }
@@ -506,15 +695,18 @@
         }
 
         async function fetchTokenVolume(tokenId) {
+            if (!isAdminUser) {
+                alert('Admin access required to refresh volumes');
+                return;
+            }
+
             const token = tokens.find(t => t.id === tokenId);
             if (!token) return;
 
             try {
-                // Update the row to show loading
-                renderTokensTable();
+                renderTokensTable(); // Show loading
                 
                 const apiUrl = `/api/volume/${token.slug}`;
-                
                 const response = await fetch(apiUrl);
                 
                 if (!response.ok) {
@@ -524,23 +716,26 @@
                 const data = await response.json();
                 
                 if (data.data && data.data.marketPairs && data.data.marketPairs.length > 0) {
-                    // Find the rank 1 CEX entry
                     const rank1Cex = data.data.marketPairs.find(pair => 
                         pair.rank === 1 && pair.type === 'cex'
                     );
                     
                     if (rank1Cex) {
-                        // Store previous volume as yesterday's volume if not set
-                        if (token.volumeYesterday === null && token.volumeToday !== null) {
-                            token.volumeYesterday = token.volumeToday;
+                        // Update volume on server
+                        const updateResponse = await fetch(`/api/tokens/${tokenId}/volume`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                volume: rank1Cex.volumeUsd,
+                                adminPassword
+                            })
+                        });
+                        
+                        if (updateResponse.ok) {
+                            await loadTokensFromServer(); // Reload all data
+                        } else {
+                            throw new Error('Failed to update volume on server');
                         }
-                        
-                        token.volumeToday = rank1Cex.volumeUsd;
-                        token.lastUpdated = new Date().toISOString();
-                        
-                        saveTokens();
-                        updateStats();
-                        renderTokensTable();
                     } else {
                         throw new Error('No rank 1 CEX data found');
                     }
@@ -551,11 +746,16 @@
             } catch (error) {
                 console.error('Error fetching volume data:', error);
                 alert(`Error fetching data for ${token.name}: ${error.message}`);
-                renderTokensTable(); // Re-render to remove loading state
+                renderTokensTable();
             }
         }
 
         async function refreshAllVolumes() {
+            if (!isAdminUser) {
+                alert('Admin access required');
+                return;
+            }
+
             const refreshButton = event.target;
             refreshButton.disabled = true;
             refreshButton.textContent = '🔄 Refreshing...';
@@ -563,7 +763,6 @@
             try {
                 for (const token of tokens) {
                     await fetchTokenVolume(token.id);
-                    // Small delay between requests to be respectful to the API
                     await new Promise(resolve => setTimeout(resolve, 500));
                 }
             } finally {
@@ -572,7 +771,9 @@
             }
         }
 
-        function editToken(tokenId) {
+        async function editToken(tokenId) {
+            if (!isAdminUser) return;
+
             const token = tokens.find(t => t.id === tokenId);
             if (!token) return;
 
@@ -580,44 +781,192 @@
             const newTopYesterday = prompt(`Enter new "Top Volume Yesterday" for ${token.name} (USD):`, token.topYesterday);
             const newVolumeYesterday = prompt(`Enter "Trading Volume Yesterday" for ${token.name} (leave empty to skip):`, token.volumeYesterday || '');
 
+            const updates = {};
+            
             if (newTopToday !== null && !isNaN(newTopToday) && newTopToday >= 0) {
-                token.topToday = parseFloat(newTopToday);
+                updates.topToday = parseFloat(newTopToday);
             }
             
             if (newTopYesterday !== null && !isNaN(newTopYesterday) && newTopYesterday >= 0) {
-                token.topYesterday = parseFloat(newTopYesterday);
+                updates.topYesterday = parseFloat(newTopYesterday);
             }
             
             if (newVolumeYesterday !== null && newVolumeYesterday.trim() !== '') {
                 const volumeValue = parseFloat(newVolumeYesterday);
                 if (!isNaN(volumeValue) && volumeValue >= 0) {
-                    token.volumeYesterday = volumeValue;
+                    updates.volumeYesterday = volumeValue;
                 }
             }
 
-            saveTokens();
-            updateStats();
-            renderTokensTable();
+            if (Object.keys(updates).length === 0) return;
+
+            try {
+                const response = await fetch(`/api/tokens/${tokenId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ updates, adminPassword })
+                });
+
+                if (response.ok) {
+                    await loadTokensFromServer();
+                    alert('✅ Token updated successfully!');
+                } else {
+                    const result = await response.json();
+                    alert('❌ Error: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error updating token: ' + error.message);
+            }
         }
 
-        function deleteToken(tokenId) {
+        async function deleteToken(tokenId) {
+            if (!isAdminUser) return;
+
             const token = tokens.find(t => t.id === tokenId);
             if (!token) return;
 
-            if (confirm(`Are you sure you want to delete ${token.name}? This action cannot be undone.`)) {
-                tokens = tokens.filter(t => t.id !== tokenId);
-                saveTokens();
-                updateStats();
-                renderTokensTable();
+            if (confirm(`Are you sure you want to delete ${token.name}? This action cannot be undone and will affect all users.`)) {
+                try {
+                    const response = await fetch(`/api/tokens/${tokenId}`, {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ adminPassword })
+                    });
+
+                    if (response.ok) {
+                        await loadTokensFromServer();
+                        alert('✅ Token deleted successfully!');
+                    } else {
+                        const result = await response.json();
+                        alert('❌ Error: ' + result.error);
+                    }
+                } catch (error) {
+                    alert('Error deleting token: ' + error.message);
+                }
             }
         }
 
-        // Auto-refresh volumes every 5 minutes
-        setInterval(() => {
-            if (tokens.length > 0) {
-                refreshAllVolumes();
+        // Export token report
+        function exportTokenReport() {
+            if (!isAdminUser) {
+                alert('Admin access required');
+                return;
             }
-        }, 5 * 60 * 1000);
+
+            if (tokens.length === 0) {
+                alert('No tokens to export');
+                return;
+            }
+
+            // Generate simplified report content
+            const reportDate = new Date().toLocaleString();
+            let reportContent = ``;
+
+            tokens.forEach((token, index) => {
+                const topDifference = token.topToday - token.topYesterday;
+                const topDifferencePercent = token.topYesterday !== 0 ? 
+                    ((topDifference / token.topYesterday) * 100).toFixed(2) : '0.00';
+                
+                reportContent += `${token.name}\n`;
+                reportContent += `-`.repeat(token.name.length) + `\n`;
+                reportContent += `Top Volume Today:     ${formatCurrencyPlain(token.topToday)}\n`;
+                reportContent += `Top Volume Yesterday: ${formatCurrencyPlain(token.topYesterday)}\n`;
+                reportContent += `Top Volume Difference: ${formatCurrencyPlain(topDifference)} (${topDifferencePercent}%)\n`;
+                reportContent += `Last Updated: ${token.lastUpdated ? new Date(token.lastUpdated).toLocaleString() : 'Never'}\n`;
+                
+                // Add blank line between tokens if there are multiple
+                if (index < tokens.length - 1) {
+                    reportContent += `\n`;
+                }
+            });
+
+            // Create and download file
+            const blob = new Blob([reportContent], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `token-report-${new Date().toISOString().split('T')[0]}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+
+            alert('📋 Report exported successfully!');
+        }
+
+        // Format currency for plain text (no symbols)
+        function formatCurrencyPlain(amount) {
+            if (amount === null || amount === undefined) return 'N/A';
+            return '$' + new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+            }).format(amount);
+        }
+
+        // Load schedule information
+        async function loadScheduleInfo() {
+            try {
+                const response = await fetch('/api/schedule-info');
+                if (response.ok) {
+                    const scheduleInfo = await response.json();
+                    const nextRun = new Date(scheduleInfo.nextScheduledRun);
+                    const infoElement = document.getElementById('scheduleInfo');
+                    
+                    if (scheduleInfo.testMode) {
+                        infoElement.innerHTML = `🧪 TEST MODE: Next auto-update in ~5 minutes`;
+                        infoElement.style.color = '#e53e3e';
+                        infoElement.style.fontWeight = 'bold';
+                    } else {
+                        infoElement.innerHTML = `⏰ Next auto-update: ${nextRun.toLocaleString()} (7 AM UTC+7)`;
+                        infoElement.style.color = '#718096';
+                        infoElement.style.fontWeight = 'normal';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading schedule info:', error);
+            }
+        }
+
+        // Trigger daily update manually
+        async function triggerDailyUpdate() {
+            if (!isAdminUser) {
+                alert('Admin access required');
+                return;
+            }
+
+            if (confirm('This will fetch new volumes for all tokens and shift today→yesterday. Continue?')) {
+                const triggerButton = event.target;
+                const originalText = triggerButton.textContent;
+                triggerButton.disabled = true;
+                triggerButton.textContent = '⏳ Updating...';
+
+                try {
+                    const response = await fetch('/api/admin/trigger-update', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ adminPassword })
+                    });
+
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        alert('✅ Daily volume update started! This may take a few minutes. The page will refresh automatically when complete.');
+                        
+                        // Refresh page after delay to show updated data
+                        setTimeout(() => {
+                            loadTokensFromServer();
+                        }, 10000); // 10 seconds delay
+                    } else {
+                        alert('❌ Error: ' + result.error);
+                    }
+                } catch (error) {
+                    alert('Error triggering update: ' + error.message);
+                } finally {
+                    triggerButton.disabled = false;
+                    triggerButton.textContent = originalText;
+                }
+            }
+        }
     </script>
 </body>
 </html>
