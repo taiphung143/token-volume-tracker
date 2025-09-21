@@ -426,16 +426,49 @@
 
         .history-type.manual_entry { background: #e6fffa; color: #38b2ac; }
         .history-type.manual_update { background: #fef5e7; color: #d69e2e; }
+        .history-type.manual_shift_update { background: #e6f3ff; color: #2b77cb; }
         .history-type.api_fetch { background: #e6f7ff; color: #3182ce; }
         .history-type.daily_fetch { background: #f0fff4; color: #38a169; }
         .history-type.daily_shift { background: #faf5ff; color: #805ad5; }
         .history-type.daily_snapshot { background: #fff5f5; color: #e53e3e; }
+        .history-type.competition_archived { background: #f7fafc; color: #4a5568; }
+        .history-type.competition_restored { background: #f0fff4; color: #38a169; }
 
         .no-history {
             text-align: center;
             color: #718096;
             font-style: italic;
             padding: 20px;
+        }
+
+        .competition-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+        }
+
+        .section-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .count-badge {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .competition-section:last-child {
+            margin-bottom: 0;
         }
     </style>
 </head>
@@ -523,9 +556,33 @@
                 </div>
             </div>
 
-            <div id="tokensTableContainer">
-                <div class="empty-state">
-                    No tokens added yet. Add your first token above! 📈
+            <!-- Ongoing Competition Section -->
+            <div class="competition-section">
+                <div class="section-header">
+                    <h3 style="color: #38a169; margin: 0; display: flex; align-items: center; gap: 8px;">
+                        🏆 Ongoing Competition
+                        <span id="ongoingCount" class="count-badge">0</span>
+                    </h3>
+                </div>
+                <div id="ongoingTokensContainer">
+                    <div class="empty-state">
+                        No ongoing competitions. Add your first token above! 📈
+                    </div>
+                </div>
+            </div>
+
+            <!-- Finished Competition Section -->
+            <div class="competition-section">
+                <div class="section-header">
+                    <h3 style="color: #718096; margin: 0; display: flex; align-items: center; gap: 8px;">
+                        🏁 Finished Competition
+                        <span id="archivedCount" class="count-badge">0</span>
+                    </h3>
+                </div>
+                <div id="archivedTokensContainer">
+                    <div class="empty-state">
+                        No finished competitions yet. �
+                    </div>
                 </div>
             </div>
         </div>
@@ -751,14 +808,29 @@
         }
 
         function renderTokensTable() {
-            const container = document.getElementById('tokensTableContainer');
+            const ongoingTokens = tokens.filter(token => !token.status || token.status === 'ongoing');
+            const archivedTokens = tokens.filter(token => token.status === 'archived');
             
-            if (tokens.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        No tokens added yet. ${isAdminUser ? 'Add your first token above!' : 'Admin needs to add tokens.'} 📈
-                    </div>
-                `;
+            // Update count badges
+            document.getElementById('ongoingCount').textContent = ongoingTokens.length;
+            document.getElementById('archivedCount').textContent = archivedTokens.length;
+            
+            // Render ongoing tokens
+            renderTokenSection('ongoingTokensContainer', ongoingTokens, 'ongoing');
+            
+            // Render archived tokens
+            renderTokenSection('archivedTokensContainer', archivedTokens, 'archived');
+        }
+
+        function renderTokenSection(containerId, sectionTokens, sectionType) {
+            const container = document.getElementById(containerId);
+            
+            if (sectionTokens.length === 0) {
+                const emptyMessage = sectionType === 'ongoing' 
+                    ? `No ongoing competitions. ${isAdminUser ? 'Add your first token above!' : 'Admin needs to add tokens.'} 📈`
+                    : 'No finished competitions yet. 📝';
+                    
+                container.innerHTML = `<div class="empty-state">${emptyMessage}</div>`;
                 return;
             }
 
@@ -774,11 +846,12 @@
                             <th>Trading Volume Yesterday</th>
                             <th>Trading Volume Comparison</th>
                             <th>Last Updated</th>
+                            ${sectionType === 'archived' ? '<th>Archived</th>' : ''}
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${tokens.map(token => generateTokenRow(token)).join('')}
+                        ${sectionTokens.map(token => generateTokenRow(token, sectionType)).join('')}
                     </tbody>
                 </table>
             `;
@@ -786,14 +859,18 @@
             container.innerHTML = tableHTML;
         }
 
-        function generateTokenRow(token) {
+        function generateTokenRow(token, sectionType) {
             const topComparison = getComparison(token.topYesterday, token.topToday);
             const volumeComparison = getComparison(token.volumeYesterday, token.volumeToday);
             const lastUpdated = token.lastUpdated ? new Date(token.lastUpdated).toLocaleString() : 'Never';
+            const archivedDate = token.archivedAt ? new Date(token.archivedAt).toLocaleDateString() : '';
             
             return `
                 <tr>
-                    <td class="token-name">${token.name}</td>
+                    <td class="token-name">
+                        ${token.name}
+                        ${sectionType === 'archived' ? '<span style="color: #718096; font-size: 12px; margin-left: 8px;">🏁</span>' : ''}
+                    </td>
                     <td class="volume-display">${formatCurrency(token.topToday)}</td>
                     <td class="volume-display">${formatCurrency(token.topYesterday)}</td>
                     <td>${topComparison}</td>
@@ -801,18 +878,30 @@
                     <td class="volume-display">${token.volumeYesterday !== null ? formatCurrency(token.volumeYesterday) : 'Not set'}</td>
                     <td>${volumeComparison}</td>
                     <td>${lastUpdated}</td>
-                    ${isAdminUser ? `
-                    <td class="actions">
-                        <button class="btn btn-success" onclick="fetchTokenVolume(${token.id})" style="font-size: 12px; padding: 6px 12px;">🔄</button>
-                        <button class="btn btn-primary" onclick="viewTokenHistory(${token.id})" style="font-size: 12px; padding: 6px 12px;">📈</button>
-                        <button class="btn btn-primary" onclick="editToken(${token.id})" style="font-size: 12px; padding: 6px 12px;">✏️</button>
-                        <button class="btn btn-danger" onclick="deleteToken(${token.id})" style="font-size: 12px; padding: 6px 12px;">🗑️</button>
-                    </td>` : `
-                    <td class="actions">
-                        <button class="btn btn-primary" onclick="viewTokenHistory(${token.id})" style="font-size: 12px; padding: 6px 12px;">📈 History</button>
-                    </td>`}
+                    ${sectionType === 'archived' ? `<td style="font-size: 12px; color: #718096;">${archivedDate}</td>` : ''}
+                    ${generateActionButtons(token, sectionType)}
                 </tr>
             `;
+        }
+
+        function generateActionButtons(token, sectionType) {
+            if (isAdminUser) {
+                const archiveButton = sectionType === 'archived' 
+                    ? `<button class="btn btn-success" onclick="unarchiveToken(${token.id})" style="font-size: 12px; padding: 6px 12px;" title="Restore to Ongoing">♻️</button>`
+                    : `<button class="btn btn-warning" onclick="archiveToken(${token.id})" style="font-size: 12px; padding: 6px 12px;" title="Move to Finished">📦</button>`;
+                
+                return `<td class="actions">
+                    ${sectionType === 'ongoing' ? `<button class="btn btn-success" onclick="fetchTokenVolume(${token.id})" style="font-size: 12px; padding: 6px 12px;">🔄</button>` : ''}
+                    <button class="btn btn-primary" onclick="viewTokenHistory(${token.id})" style="font-size: 12px; padding: 6px 12px;">📈</button>
+                    ${sectionType === 'ongoing' ? `<button class="btn btn-primary" onclick="editToken(${token.id})" style="font-size: 12px; padding: 6px 12px;">✏️</button>` : ''}
+                    ${archiveButton}
+                    <button class="btn btn-danger" onclick="deleteToken(${token.id})" style="font-size: 12px; padding: 6px 12px;">🗑️</button>
+                </td>`;
+            } else {
+                return `<td class="actions">
+                    <button class="btn btn-primary" onclick="viewTokenHistory(${token.id})" style="font-size: 12px; padding: 6px 12px;">📈 History</button>
+                </td>`;
+            }
         }
 
         function getComparison(oldValue, newValue, reverse = false) {
@@ -909,10 +998,30 @@
             refreshButton.textContent = '🔄 Refreshing...';
             
             try {
+                let refreshedCount = 0;
+                let skippedCount = 0;
+                
                 for (const token of tokens) {
+                    // Skip archived tokens - no need to refresh finished competitions
+                    if (token.status === 'archived') {
+                        console.log(`⏭️  Skipping ${token.name} (archived)`);
+                        skippedCount++;
+                        continue;
+                    }
+                    
                     await fetchTokenVolume(token.id);
+                    refreshedCount++;
                     await new Promise(resolve => setTimeout(resolve, 500));
                 }
+                
+                if (skippedCount > 0) {
+                    alert(`✅ Refreshed ${refreshedCount} ongoing tokens. Skipped ${skippedCount} archived tokens.`);
+                } else {
+                    alert(`✅ Refreshed all ${refreshedCount} tokens successfully!`);
+                }
+                
+            } catch (error) {
+                alert('Error during refresh: ' + error.message);
             } finally {
                 refreshButton.disabled = false;
                 refreshButton.textContent = '🔄 Refresh All Volumes';
@@ -925,28 +1034,21 @@
             const token = tokens.find(t => t.id === tokenId);
             if (!token) return;
 
-            const newTopToday = prompt(`Enter new "Top Volume Today" for ${token.name} (USD):`, token.topToday);
-            const newTopYesterday = prompt(`Enter new "Top Volume Yesterday" for ${token.name} (USD):`, token.topYesterday);
-            const newVolumeYesterday = prompt(`Enter "Trading Volume Yesterday" for ${token.name} (leave empty to skip):`, token.volumeYesterday || '');
+            const newTopToday = prompt(`Enter new "Top Volume Today" for ${token.name} (USD):\n\nCurrent: $${token.topToday.toLocaleString()}\n\nNote: The current value will automatically become "Yesterday's" value.`, token.topToday);
 
-            const updates = {};
-            
-            if (newTopToday !== null && !isNaN(newTopToday) && newTopToday >= 0) {
-                updates.topToday = parseFloat(newTopToday);
-            }
-            
-            if (newTopYesterday !== null && !isNaN(newTopYesterday) && newTopYesterday >= 0) {
-                updates.topYesterday = parseFloat(newTopYesterday);
-            }
-            
-            if (newVolumeYesterday !== null && newVolumeYesterday.trim() !== '') {
-                const volumeValue = parseFloat(newVolumeYesterday);
-                if (!isNaN(volumeValue) && volumeValue >= 0) {
-                    updates.volumeYesterday = volumeValue;
-                }
+            if (newTopToday === null) return; // User cancelled
+
+            const newTopValue = parseFloat(newTopToday);
+            if (isNaN(newTopValue) || newTopValue < 0) {
+                alert('❌ Please enter a valid positive number');
+                return;
             }
 
-            if (Object.keys(updates).length === 0) return;
+            // Prepare updates: new value for today, current today becomes yesterday
+            const updates = {
+                topToday: newTopValue,
+                topYesterday: token.topToday  // Current today becomes yesterday
+            };
 
             try {
                 const response = await fetch(`/api/tokens/${tokenId}`, {
@@ -957,7 +1059,7 @@
 
                 if (response.ok) {
                     await loadTokensFromServer();
-                    alert('✅ Token updated successfully!');
+                    alert(`✅ Token updated successfully!\n\n${token.name}:\n• New Today: $${newTopValue.toLocaleString()}\n• New Yesterday: $${token.topToday.toLocaleString()}`);
                 } else {
                     const result = await response.json();
                     alert('❌ Error: ' + result.error);
@@ -1001,16 +1103,22 @@
                 return;
             }
 
-            if (tokens.length === 0) {
-                alert('No tokens to export');
+            // Filter only ongoing tokens for export (exclude archived)
+            const ongoingTokens = tokens.filter(token => !token.status || token.status === 'ongoing');
+
+            if (ongoingTokens.length === 0) {
+                alert('No ongoing competitions to export');
                 return;
             }
 
             // Generate simplified report content
             const reportDate = new Date().toLocaleString();
-            let reportContent = ``;
+            let reportContent = `Token Volume Report - Ongoing Competitions\n`;
+            reportContent += `Generated: ${reportDate}\n`;
+            reportContent += `Tokens Included: ${ongoingTokens.length} ongoing competitions\n`;
+            reportContent += `${'='.repeat(60)}\n\n`;
 
-            tokens.forEach((token, index) => {
+            ongoingTokens.forEach((token, index) => {
                 const topDifference = token.topToday - token.topYesterday;
                 const topDifferencePercent = token.topYesterday !== 0 ? 
                     ((topDifference / token.topYesterday) * 100).toFixed(2) : '0.00';
@@ -1023,23 +1131,35 @@
                 reportContent += `Last Updated: ${token.lastUpdated ? new Date(token.lastUpdated).toLocaleString() : 'Never'}\n`;
                 
                 // Add blank line between tokens if there are multiple
-                if (index < tokens.length - 1) {
+                if (index < ongoingTokens.length - 1) {
                     reportContent += `\n`;
                 }
             });
+
+            // Add summary footer
+            const archivedCount = tokens.filter(token => token.status === 'archived').length;
+            if (archivedCount > 0) {
+                reportContent += `\n\n${'='.repeat(60)}\n`;
+                reportContent += `Note: ${archivedCount} archived competition(s) excluded from this report.\n`;
+            }
 
             // Create and download file
             const blob = new Blob([reportContent], { type: 'text/plain' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `token-report-${new Date().toISOString().split('T')[0]}.txt`;
+            a.download = `ongoing-competitions-report-${new Date().toISOString().split('T')[0]}.txt`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
 
-            alert('📋 Report exported successfully!');
+            const totalArchivedCount = tokens.filter(token => token.status === 'archived').length;
+            const message = totalArchivedCount > 0 
+                ? `📋 Report exported successfully!\n\nExported: ${ongoingTokens.length} ongoing competitions\nExcluded: ${totalArchivedCount} archived competitions`
+                : `📋 Report exported successfully!\n\nExported: ${ongoingTokens.length} ongoing competitions`;
+            
+            alert(message);
         }
 
         // Format currency for plain text (no symbols)
@@ -1251,13 +1371,16 @@
             const types = {
                 'manual_entry': 'Manual Entry',
                 'manual_update': 'Manual Update',
+                'manual_shift_update': 'Manual Shift Update',
                 'manual_correction': 'Manual Correction',
                 'manual_backfill': 'Manual Backfill',
                 'api_fetch': 'API Fetch',
                 'daily_fetch': 'Daily Fetch',
                 'daily_shift': 'Daily Shift',
                 'daily_snapshot': 'Daily Snapshot',
-                'shifted_from_today': 'Shifted from Today'
+                'shifted_from_today': 'Shifted from Today',
+                'competition_archived': 'Competition Archived',
+                'competition_restored': 'Competition Restored'
             };
             return types[type] || type;
         }
@@ -1283,6 +1406,62 @@
                 historyModal.style.display = 'none';
             }
         };
+
+        // Archive token
+        async function archiveToken(tokenId) {
+            if (!isAdminUser) return;
+
+            const token = tokens.find(t => t.id === tokenId);
+            if (!token) return;
+
+            if (confirm(`Archive "${token.name}"?\n\nThis will move it to the "Finished Competition" section. You can restore it later if needed.`)) {
+                try {
+                    const response = await fetch(`/api/tokens/${tokenId}/archive`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ adminPassword, archived: true })
+                    });
+
+                    if (response.ok) {
+                        await loadTokensFromServer();
+                        alert(`✅ ${token.name} moved to Finished Competition!`);
+                    } else {
+                        const result = await response.json();
+                        alert('❌ Error: ' + result.error);
+                    }
+                } catch (error) {
+                    alert('Error archiving token: ' + error.message);
+                }
+            }
+        }
+
+        // Unarchive token
+        async function unarchiveToken(tokenId) {
+            if (!isAdminUser) return;
+
+            const token = tokens.find(t => t.id === tokenId);
+            if (!token) return;
+
+            if (confirm(`Restore "${token.name}" to Ongoing Competition?`)) {
+                try {
+                    const response = await fetch(`/api/tokens/${tokenId}/archive`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ adminPassword, archived: false })
+                    });
+
+                    if (response.ok) {
+                        await loadTokensFromServer();
+                        alert(`✅ ${token.name} restored to Ongoing Competition!`);
+                    } else {
+                        const result = await response.json();
+                        alert('❌ Error: ' + result.error);
+                    }
+                } catch (error) {
+                    alert('Error restoring token: ' + error.message);
+                }
+            }
+        }
     </script>
 </body>
 </html>

@@ -80,6 +80,7 @@ app.post('/api/tokens', (req, res) => {
             volumeToday: null,
             volumeYesterday: null,
             lastUpdated: null,
+            status: 'ongoing', // All new tokens start as ongoing
             // New historical data arrays
             topVolumeHistory: [
                 {
@@ -131,19 +132,56 @@ app.put('/api/tokens/:id', (req, res) => {
         if (!token.topVolumeHistory) token.topVolumeHistory = [];
         if (!token.tradingVolumeHistory) token.tradingVolumeHistory = [];
         
-        // Track top volume changes
+        // Handle top volume changes with special logic for shift operations
         if (updates.topToday !== undefined && updates.topToday !== token.topToday) {
-            token.topVolumeHistory.push({
-                date: currentDate,
-                value: parseFloat(updates.topToday),
-                previousValue: token.topToday,
-                timestamp: currentTimestamp,
-                type: 'manual_update'
-            });
+            // Check if this is a shift operation (today's value becomes yesterday's)
+            const isShiftOperation = updates.topYesterday !== undefined && 
+                                   updates.topYesterday === token.topToday &&
+                                   updates.topToday !== token.topToday;
+            
+            if (isShiftOperation) {
+                // This is a shift operation - record the new today value
+                token.topVolumeHistory.push({
+                    date: currentDate,
+                    value: parseFloat(updates.topToday),
+                    previousValue: token.topToday,
+                    timestamp: currentTimestamp,
+                    type: 'manual_shift_update'
+                });
+                
+                // Record the shifted yesterday value
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yesterdayDate = yesterday.toISOString().split('T')[0];
+                
+                const existingEntry = token.topVolumeHistory.find(entry => entry.date === yesterdayDate);
+                if (existingEntry) {
+                    existingEntry.value = parseFloat(updates.topYesterday);
+                    existingEntry.timestamp = currentTimestamp;
+                    existingEntry.type = 'shifted_from_today';
+                } else {
+                    token.topVolumeHistory.push({
+                        date: yesterdayDate,
+                        value: parseFloat(updates.topYesterday),
+                        previousValue: token.topYesterday,
+                        timestamp: currentTimestamp,
+                        type: 'shifted_from_today'
+                    });
+                }
+            } else {
+                // Regular manual update
+                token.topVolumeHistory.push({
+                    date: currentDate,
+                    value: parseFloat(updates.topToday),
+                    previousValue: token.topToday,
+                    timestamp: currentTimestamp,
+                    type: 'manual_update'
+                });
+            }
         }
         
-        if (updates.topYesterday !== undefined && updates.topYesterday !== token.topYesterday) {
-            // Find if there's already an entry for yesterday
+        // Handle standalone topYesterday updates (for legacy compatibility)
+        if (updates.topYesterday !== undefined && updates.topYesterday !== token.topYesterday && updates.topToday === undefined) {
             const yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
             const yesterdayDate = yesterday.toISOString().split('T')[0];
@@ -241,6 +279,11 @@ app.put('/api/tokens/:id/volume', (req, res) => {
         
         if (!token) {
             return res.status(404).json({ error: 'Token not found' });
+        }
+        
+        // Check if token is archived - don't update volumes for finished competitions
+        if (token.status === 'archived') {
+            return res.status(400).json({ error: 'Cannot update volume for archived token. Competition has ended.' });
         }
         
         const currentDate = new Date().toISOString().split('T')[0];
@@ -349,6 +392,12 @@ async function performDailyVolumeUpdate() {
         const currentTimestamp = new Date().toISOString();
         
         for (const token of db.tokens) {
+            // Skip archived tokens - no need to fetch volumes for finished competitions
+            if (token.status === 'archived') {
+                console.log(`⏭️  Skipping ${token.name} (archived)`);
+                continue;
+            }
+            
             console.log(`Processing ${token.name}...`);
             
             // Initialize history arrays if they don't exist (for existing tokens)
@@ -583,13 +632,77 @@ function migrateExistingTokens() {
             hasChanges = true;
             console.log(`Added tradingVolumeHistory array to ${token.name}`);
         }
+        if (!token.status) {
+            token.status = 'ongoing'; // All existing tokens are ongoing by default
+            hasChanges = true;
+            console.log(`Set status to 'ongoing' for ${token.name}`);
+        }
     }
     
     if (hasChanges) {
         saveDatabase(db);
-        console.log('✅ Migration completed: Added history arrays to existing tokens');
+        console.log('✅ Migration completed: Added history arrays and status to existing tokens');
     }
 }
 
 // Run migration on server startup
 migrateExistingTokens();
+
+// Archive/Unarchive token (admin only)
+app.put('/api/tokens/:id/archive', (req, res) => {
+    try {
+        const { id } = req.params;
+        const { adminPassword, archived } = req.body;
+        
+        if (!isAdmin(adminPassword)) {
+            return res.status(401).json({ error: 'Unauthorized: Invalid admin password' });
+        }
+        
+        const db = loadDatabase();
+        const tokenIndex = db.tokens.findIndex(t => t.id === parseInt(id));
+        
+        if (tokenIndex === -1) {
+            return res.status(404).json({ error: 'Token not found' });
+        }
+        
+        const token = db.tokens[tokenIndex];
+        const currentTimestamp = new Date().toISOString();
+        
+        // Initialize history arrays if they don't exist
+        if (!token.topVolumeHistory) token.topVolumeHistory = [];
+        if (!token.tradingVolumeHistory) token.tradingVolumeHistory = [];
+        
+        // Update status
+        const newStatus = archived ? 'archived' : 'ongoing';
+        const oldStatus = token.status || 'ongoing';
+        
+        if (newStatus !== oldStatus) {
+            token.status = newStatus;
+            token.archivedAt = archived ? currentTimestamp : null;
+            
+            // Add history entry for status change
+            token.topVolumeHistory.push({
+                date: new Date().toISOString().split('T')[0],
+                value: token.topToday,
+                timestamp: currentTimestamp,
+                type: archived ? 'competition_archived' : 'competition_restored',
+                note: archived ? 'Token moved to finished competition' : 'Token restored to ongoing competition'
+            });
+        }
+        
+        db.lastUpdated = currentTimestamp;
+        
+        if (saveDatabase(db)) {
+            res.json({ 
+                success: true, 
+                token: db.tokens[tokenIndex],
+                message: archived ? 'Token archived successfully' : 'Token restored to ongoing competition'
+            });
+        } else {
+            res.status(500).json({ error: 'Failed to update token status' });
+        }
+        
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to archive/unarchive token' });
+    }
+});

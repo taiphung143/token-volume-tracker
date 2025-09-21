@@ -4,11 +4,11 @@
       "id": 1758350295068,
       "name": "HEMI",
       "slug": "hemi",
-      "topToday": 100,
-      "topYesterday": 55,
-      "volumeToday": 704378325.397234,
-      "volumeYesterday": 821150722.3474069,
-      "lastUpdated": "2025-09-21T13:12:23.519Z",
+      "topToday": 1394259,
+      "topYesterday": 930443,
+      "volumeToday": 722260839.3176277,
+      "volumeYesterday": 721167046.3524297,
+      "lastUpdated": "2025-09-21T13:49:14.272Z",
       "topVolumeHistory": [
         {
           "date": "2025-09-21",
@@ -16,6 +16,46 @@
           "previousValue": 55,
           "timestamp": "2025-09-21T13:12:36.863Z",
           "type": "manual_update"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 55,
+          "previousValue": 100,
+          "timestamp": "2025-09-21T13:34:36.747Z",
+          "type": "manual_update"
+        },
+        {
+          "date": "2025-09-20",
+          "value": 930443,
+          "previousValue": 55,
+          "timestamp": "2025-09-21T13:34:57.382Z",
+          "type": "manual_correction"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 930443,
+          "previousValue": 55,
+          "timestamp": "2025-09-21T13:34:50.721Z",
+          "type": "manual_update"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 1394259,
+          "previousValue": 930443,
+          "timestamp": "2025-09-21T13:34:57.382Z",
+          "type": "manual_update"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 1394259,
+          "timestamp": "2025-09-21T13:46:10.151Z",
+          "type": "daily_snapshot"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 1394259,
+          "timestamp": "2025-09-21T13:49:14.272Z",
+          "type": "daily_snapshot"
         }
       ],
       "tradingVolumeHistory": [
@@ -30,19 +70,78 @@
           "value": 704378325.397234,
           "timestamp": "2025-09-21T13:12:23.519Z",
           "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-20",
+          "value": 704378325.397234,
+          "timestamp": "2025-09-21T13:46:10.151Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 721167046.3524297,
+          "timestamp": "2025-09-21T13:46:10.151Z",
+          "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-20",
+          "value": 721167046.3524297,
+          "timestamp": "2025-09-21T13:49:14.272Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 722260839.3176277,
+          "timestamp": "2025-09-21T13:49:14.272Z",
+          "type": "daily_fetch"
         }
-      ]
+      ],
+      "status": "ongoing"
     },
     {
       "id": 1758350562749,
       "name": "TRADOOR",
       "slug": "tradoor",
-      "topToday": 5,
-      "topYesterday": 55,
-      "volumeToday": 556854168.5897976,
-      "volumeYesterday": 653243092.2112917,
-      "lastUpdated": "2025-09-21T13:12:24.442Z",
-      "topVolumeHistory": [],
+      "topToday": 2744902,
+      "topYesterday": 2346543,
+      "volumeToday": 568161150.0343194,
+      "volumeYesterday": 566796950.1054616,
+      "lastUpdated": "2025-09-21T13:49:14.272Z",
+      "topVolumeHistory": [
+        {
+          "date": "2025-09-21",
+          "value": 2346543,
+          "previousValue": 5,
+          "timestamp": "2025-09-21T13:35:06.318Z",
+          "type": "manual_update"
+        },
+        {
+          "date": "2025-09-20",
+          "value": 2346543,
+          "previousValue": 55,
+          "timestamp": "2025-09-21T13:35:12.820Z",
+          "type": "manual_correction"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 2744902,
+          "previousValue": 2346543,
+          "timestamp": "2025-09-21T13:35:12.820Z",
+          "type": "manual_update"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 2744902,
+          "timestamp": "2025-09-21T13:46:10.151Z",
+          "type": "daily_snapshot"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 2744902,
+          "timestamp": "2025-09-21T13:49:14.272Z",
+          "type": "daily_snapshot"
+        }
+      ],
       "tradingVolumeHistory": [
         {
           "date": "2025-09-21",
@@ -55,19 +154,78 @@
           "value": 556854168.5897976,
           "timestamp": "2025-09-21T13:12:24.442Z",
           "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-20",
+          "value": 556854168.5897976,
+          "timestamp": "2025-09-21T13:46:10.151Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 566796950.1054616,
+          "timestamp": "2025-09-21T13:46:10.151Z",
+          "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-20",
+          "value": 566796950.1054616,
+          "timestamp": "2025-09-21T13:49:14.272Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 568161150.0343194,
+          "timestamp": "2025-09-21T13:49:14.272Z",
+          "type": "daily_fetch"
         }
-      ]
+      ],
+      "status": "ongoing"
     },
     {
       "id": 1758362944177,
       "name": "PTB",
       "slug": "portaltobitcoin",
-      "topToday": 55,
-      "topYesterday": 55,
-      "volumeToday": 620767255.3338934,
-      "volumeYesterday": 487897087.8663599,
-      "lastUpdated": "2025-09-21T13:12:25.275Z",
-      "topVolumeHistory": [],
+      "topToday": 581250,
+      "topYesterday": 281526,
+      "volumeToday": 638176221.2965059,
+      "volumeYesterday": 636522312.01174,
+      "lastUpdated": "2025-09-21T13:49:14.272Z",
+      "topVolumeHistory": [
+        {
+          "date": "2025-09-21",
+          "value": 281526,
+          "previousValue": 55,
+          "timestamp": "2025-09-21T13:35:18.657Z",
+          "type": "manual_update"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 581250,
+          "previousValue": 281526,
+          "timestamp": "2025-09-21T13:35:24.147Z",
+          "type": "manual_update"
+        },
+        {
+          "date": "2025-09-20",
+          "value": 281526,
+          "previousValue": 55,
+          "timestamp": "2025-09-21T13:35:24.147Z",
+          "type": "manual_backfill"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 581250,
+          "timestamp": "2025-09-21T13:46:10.151Z",
+          "type": "daily_snapshot"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 581250,
+          "timestamp": "2025-09-21T13:49:14.272Z",
+          "type": "daily_snapshot"
+        }
+      ],
       "tradingVolumeHistory": [
         {
           "date": "2025-09-21",
@@ -80,19 +238,78 @@
           "value": 620767255.3338934,
           "timestamp": "2025-09-21T13:12:25.275Z",
           "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-20",
+          "value": 620767255.3338934,
+          "timestamp": "2025-09-21T13:46:10.151Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 636522312.01174,
+          "timestamp": "2025-09-21T13:46:10.151Z",
+          "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-20",
+          "value": 636522312.01174,
+          "timestamp": "2025-09-21T13:49:14.272Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 638176221.2965059,
+          "timestamp": "2025-09-21T13:49:14.272Z",
+          "type": "daily_fetch"
         }
-      ]
+      ],
+      "status": "ongoing"
     },
     {
       "id": 1758363199720,
       "name": "PRAI",
       "slug": "privasea-ai",
-      "topToday": 55,
-      "topYesterday": 55,
-      "volumeToday": 192934853.7268896,
-      "volumeYesterday": 139124321.7552031,
-      "lastUpdated": "2025-09-21T13:12:26.168Z",
-      "topVolumeHistory": [],
+      "topToday": 19183,
+      "topYesterday": 2765,
+      "volumeToday": 194742251.0533211,
+      "volumeYesterday": 194301265.14803836,
+      "lastUpdated": "2025-09-21T13:49:14.272Z",
+      "topVolumeHistory": [
+        {
+          "date": "2025-09-21",
+          "value": 2765,
+          "previousValue": 55,
+          "timestamp": "2025-09-21T13:35:40.307Z",
+          "type": "manual_update"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 19183,
+          "previousValue": 2765,
+          "timestamp": "2025-09-21T13:35:44.543Z",
+          "type": "manual_update"
+        },
+        {
+          "date": "2025-09-20",
+          "value": 2765,
+          "previousValue": 55,
+          "timestamp": "2025-09-21T13:35:44.543Z",
+          "type": "manual_backfill"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 19183,
+          "timestamp": "2025-09-21T13:46:10.151Z",
+          "type": "daily_snapshot"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 19183,
+          "timestamp": "2025-09-21T13:49:14.272Z",
+          "type": "daily_snapshot"
+        }
+      ],
       "tradingVolumeHistory": [
         {
           "date": "2025-09-21",
@@ -105,19 +322,79 @@
           "value": 192934853.7268896,
           "timestamp": "2025-09-21T13:12:26.168Z",
           "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-20",
+          "value": 192934853.7268896,
+          "timestamp": "2025-09-21T13:46:10.151Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 194301265.14803836,
+          "timestamp": "2025-09-21T13:46:10.151Z",
+          "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-20",
+          "value": 194301265.14803836,
+          "timestamp": "2025-09-21T13:49:14.272Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 194742251.0533211,
+          "timestamp": "2025-09-21T13:49:14.272Z",
+          "type": "daily_fetch"
         }
-      ]
+      ],
+      "status": "ongoing"
     },
     {
       "id": 1758363239984,
       "name": "SAROS",
       "slug": "saros",
-      "topToday": 55,
-      "topYesterday": 55,
-      "volumeToday": 183861224.8750443,
-      "volumeYesterday": 42734083.66406424,
-      "lastUpdated": "2025-09-21T13:12:27.024Z",
-      "topVolumeHistory": [],
+      "topToday": 1125,
+      "topYesterday": 59,
+      "volumeToday": 180953773.13382334,
+      "volumeYesterday": 183861224.8750443,
+      "lastUpdated": "2025-09-21T13:46:10.151Z",
+      "topVolumeHistory": [
+        {
+          "date": "2025-09-21",
+          "value": 59,
+          "previousValue": 55,
+          "timestamp": "2025-09-21T13:35:48.981Z",
+          "type": "manual_update"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 1125,
+          "previousValue": 59,
+          "timestamp": "2025-09-21T13:35:53.069Z",
+          "type": "manual_update"
+        },
+        {
+          "date": "2025-09-20",
+          "value": 59,
+          "previousValue": 55,
+          "timestamp": "2025-09-21T13:35:53.069Z",
+          "type": "manual_backfill"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 1125,
+          "timestamp": "2025-09-21T13:45:35.614Z",
+          "type": "competition_archived",
+          "note": "Token moved to finished competition"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 1125,
+          "timestamp": "2025-09-21T13:46:10.151Z",
+          "type": "daily_snapshot"
+        }
+      ],
       "tradingVolumeHistory": [
         {
           "date": "2025-09-21",
@@ -130,8 +407,22 @@
           "value": 183861224.8750443,
           "timestamp": "2025-09-21T13:12:27.024Z",
           "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-20",
+          "value": 183861224.8750443,
+          "timestamp": "2025-09-21T13:46:10.151Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 180953773.13382334,
+          "timestamp": "2025-09-21T13:46:10.151Z",
+          "type": "daily_fetch"
         }
-      ]
+      ],
+      "status": "archived",
+      "archivedAt": "2025-09-21T13:45:35.614Z"
     },
     {
       "id": 1758363326268,
@@ -139,10 +430,23 @@
       "slug": "sidekick-fans",
       "topToday": 1,
       "topYesterday": 1,
-      "volumeToday": 13478789.75338281,
-      "volumeYesterday": 4468729.66952292,
-      "lastUpdated": "2025-09-21T13:12:27.865Z",
-      "topVolumeHistory": [],
+      "volumeToday": 15109625.68693823,
+      "volumeYesterday": 14948989.89114966,
+      "lastUpdated": "2025-09-21T13:49:14.272Z",
+      "topVolumeHistory": [
+        {
+          "date": "2025-09-21",
+          "value": 1,
+          "timestamp": "2025-09-21T13:46:10.151Z",
+          "type": "daily_snapshot"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 1,
+          "timestamp": "2025-09-21T13:49:14.272Z",
+          "type": "daily_snapshot"
+        }
+      ],
       "tradingVolumeHistory": [
         {
           "date": "2025-09-21",
@@ -155,9 +459,34 @@
           "value": 13478789.75338281,
           "timestamp": "2025-09-21T13:12:27.865Z",
           "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-20",
+          "value": 13478789.75338281,
+          "timestamp": "2025-09-21T13:46:10.151Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 14948989.89114966,
+          "timestamp": "2025-09-21T13:46:10.151Z",
+          "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-20",
+          "value": 14948989.89114966,
+          "timestamp": "2025-09-21T13:49:14.272Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 15109625.68693823,
+          "timestamp": "2025-09-21T13:49:14.272Z",
+          "type": "daily_fetch"
         }
-      ]
+      ],
+      "status": "ongoing"
     }
   ],
-  "lastUpdated": "2025-09-21T13:12:36.863Z"
+  "lastUpdated": "2025-09-21T13:49:14.272Z"
 }
