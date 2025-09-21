@@ -48,6 +48,29 @@ function isAdmin(password) {
 app.get('/api/tokens', (req, res) => {
     try {
         const db = loadDatabase();
+        
+        // Initialize missing fields for existing tokens
+        let dbChanged = false;
+        db.tokens.forEach(token => {
+            if (token.amount === undefined) {
+                token.amount = 0;
+                dbChanged = true;
+            }
+            if (token.currentPrice === undefined) {
+                token.currentPrice = null;
+                dbChanged = true;
+            }
+            if (token.totalPrize === undefined) {
+                token.totalPrize = null;
+                dbChanged = true;
+            }
+        });
+        
+        // Save database if any changes were made
+        if (dbChanged) {
+            saveDatabase(db);
+        }
+        
         res.json(db.tokens);
     } catch (error) {
         res.status(500).json({ error: 'Failed to load tokens' });
@@ -79,6 +102,9 @@ app.post('/api/tokens', (req, res) => {
             topYesterday: parseFloat(token.topYesterday),
             volumeToday: null,
             volumeYesterday: null,
+            amount: parseFloat(token.amount) || 0, // Amount for prize calculation
+            currentPrice: null, // Current token price from API
+            totalPrize: null, // Total prize = currentPrice × amount
             lastUpdated: null,
             status: 'ongoing', // All new tokens start as ongoing
             // New historical data arrays
@@ -125,7 +151,7 @@ app.put('/api/tokens/:id', (req, res) => {
         }
         
         const token = db.tokens[tokenIndex];
-        const currentDate = new Date().toISOString().split('T')[0];
+        const currentDate = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD format in local timezone
         const currentTimestamp = new Date().toISOString();
         
         // Initialize history arrays if they don't exist (for existing tokens)
@@ -152,22 +178,9 @@ app.put('/api/tokens/:id', (req, res) => {
                 // Record the shifted yesterday value
                 const yesterday = new Date();
                 yesterday.setDate(yesterday.getDate() - 1);
-                const yesterdayDate = yesterday.toISOString().split('T')[0];
+                const yesterdayDate = yesterday.toLocaleDateString('en-CA'); // YYYY-MM-DD format in local timezone
                 
-                const existingEntry = token.topVolumeHistory.find(entry => entry.date === yesterdayDate);
-                if (existingEntry) {
-                    existingEntry.value = parseFloat(updates.topYesterday);
-                    existingEntry.timestamp = currentTimestamp;
-                    existingEntry.type = 'shifted_from_today';
-                } else {
-                    token.topVolumeHistory.push({
-                        date: yesterdayDate,
-                        value: parseFloat(updates.topYesterday),
-                        previousValue: token.topYesterday,
-                        timestamp: currentTimestamp,
-                        type: 'shifted_from_today'
-                    });
-                }
+                // No need to create "shifted_from_today" entries for top volume - the manual_shift_update entry is sufficient
             } else {
                 // Regular manual update
                 token.topVolumeHistory.push({
@@ -184,7 +197,7 @@ app.put('/api/tokens/:id', (req, res) => {
         if (updates.topYesterday !== undefined && updates.topYesterday !== token.topYesterday && updates.topToday === undefined) {
             const yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
-            const yesterdayDate = yesterday.toISOString().split('T')[0];
+            const yesterdayDate = yesterday.toLocaleDateString('en-CA'); // YYYY-MM-DD format in local timezone
             
             const existingEntry = token.topVolumeHistory.find(entry => entry.date === yesterdayDate);
             if (existingEntry) {
@@ -206,7 +219,7 @@ app.put('/api/tokens/:id', (req, res) => {
         if (updates.volumeYesterday !== undefined && updates.volumeYesterday !== token.volumeYesterday) {
             const yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
-            const yesterdayDate = yesterday.toISOString().split('T')[0];
+            const yesterdayDate = yesterday.toLocaleDateString('en-CA'); // YYYY-MM-DD format in local timezone
             
             token.tradingVolumeHistory.push({
                 date: yesterdayDate,
@@ -286,7 +299,7 @@ app.put('/api/tokens/:id/volume', (req, res) => {
             return res.status(400).json({ error: 'Cannot update volume for archived token. Competition has ended.' });
         }
         
-        const currentDate = new Date().toISOString().split('T')[0];
+        const currentDate = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD format in local timezone
         const currentTimestamp = new Date().toISOString();
         
         // Initialize history arrays if they don't exist (for existing tokens)
@@ -300,24 +313,38 @@ app.put('/api/tokens/:id/volume', (req, res) => {
             // Add to trading volume history
             const yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
-            const yesterdayDate = yesterday.toISOString().split('T')[0];
+            const yesterdayDate = yesterday.toLocaleDateString('en-CA'); // YYYY-MM-DD format in local timezone
             
             token.tradingVolumeHistory.push({
                 date: yesterdayDate,
                 value: token.volumeToday,
+                previousValue: null, // No previous value available when shifting
                 timestamp: currentTimestamp,
                 type: 'shifted_from_today'
             });
         }
         
+        // Capture the current volume before updating (this will be the previous value)
+        const previousVolume = token.volumeToday;
+        
         // Update current volume and add to history
         token.volumeToday = volume;
         token.lastUpdated = currentTimestamp;
+        
+        // Update price and calculate totalPrize if price is provided
+        if (req.body.price !== undefined) {
+            token.currentPrice = req.body.price;
+            // Calculate total prize: currentPrice × amount
+            if (token.amount && token.currentPrice) {
+                token.totalPrize = token.currentPrice * token.amount;
+            }
+        }
         
         // Add current volume to trading history
         token.tradingVolumeHistory.push({
             date: currentDate,
             value: volume,
+            previousValue: previousVolume, // Use the captured previous value
             timestamp: currentTimestamp,
             type: 'api_fetch'
         });
@@ -366,7 +393,10 @@ async function fetchVolumeForToken(token) {
             );
             
             if (rank1Cex) {
-                return rank1Cex.volumeUsd;
+                return {
+                    volume: rank1Cex.volumeUsd,
+                    price: rank1Cex.price
+                };
             } else {
                 console.log(`No rank 1 CEX data found for ${token.name}`);
                 return null;
@@ -388,7 +418,7 @@ async function performDailyVolumeUpdate() {
     try {
         const db = loadDatabase();
         let updatedCount = 0;
-        const currentDate = new Date().toISOString().split('T')[0];
+        const currentDate = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD format in local timezone
         const currentTimestamp = new Date().toISOString();
         
         for (const token of db.tokens) {
@@ -404,39 +434,49 @@ async function performDailyVolumeUpdate() {
             if (!token.topVolumeHistory) token.topVolumeHistory = [];
             if (!token.tradingVolumeHistory) token.tradingVolumeHistory = [];
             
-            // Fetch new volume
-            const newVolume = await fetchVolumeForToken(token);
+            // Fetch new volume and price
+            const volumeData = await fetchVolumeForToken(token);
             
-            if (newVolume !== null) {
+            if (volumeData !== null) {
                 // Store today's volume as yesterday's in history before shifting
                 if (token.volumeToday !== null) {
                     const yesterday = new Date();
                     yesterday.setDate(yesterday.getDate() - 1);
-                    const yesterdayDate = yesterday.toISOString().split('T')[0];
+                    const yesterdayDate = yesterday.toLocaleDateString('en-CA'); // YYYY-MM-DD format in local timezone
                     
                     token.tradingVolumeHistory.push({
                         date: yesterdayDate,
                         value: token.volumeToday,
+                        previousValue: token.volumeYesterday, // Add previous value
                         timestamp: currentTimestamp,
                         type: 'daily_shift'
                     });
                 }
                 
+                // Capture the current volume before updating (this will be the previous value)
+                const previousVolume = token.volumeToday;
+                
                 // Shift volumes: today → yesterday, new → today
                 token.volumeYesterday = token.volumeToday;
-                token.volumeToday = newVolume;
+                token.volumeToday = volumeData.volume;
+                
+                // Update price and calculate total prize
+                token.currentPrice = volumeData.price;
+                token.totalPrize = token.amount && token.currentPrice ? token.amount * token.currentPrice : null;
+                
                 token.lastUpdated = currentTimestamp;
                 
                 // Add new volume to history
                 token.tradingVolumeHistory.push({
                     date: currentDate,
-                    value: newVolume,
+                    value: volumeData.volume,
+                    previousValue: previousVolume, // Use the captured previous value
                     timestamp: currentTimestamp,
                     type: 'daily_fetch'
                 });
                 
                 updatedCount++;
-                console.log(`✅ Updated ${token.name}: New volume = $${newVolume.toLocaleString()}`);
+                console.log(`✅ Updated ${token.name}: New volume = $${volumeData.volume.toLocaleString()}, Price = $${volumeData.price}, Total Prize = $${token.totalPrize ? token.totalPrize.toLocaleString() : 'N/A'}`);
             } else {
                 console.log(`❌ Failed to fetch volume for ${token.name}`);
             }

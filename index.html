@@ -573,6 +573,10 @@
                     <label for="topYesterday">Top Volume Yesterday * (USD)</label>
                     <input type="number" id="topYesterday" min="0" step="0.01" placeholder="e.g., 150000" required>
                 </div>
+                <div class="form-group">
+                    <label for="tokenAmount">Token Amount * (for prize calculation)</label>
+                    <input type="number" id="tokenAmount" min="0" step="0.000001" placeholder="e.g., 1000000" required>
+                </div>
             </form>
             <div style="margin-top: 20px;">
                 <button type="submit" form="addTokenForm" class="btn btn-primary">Add Token</button>
@@ -587,7 +591,10 @@
                         <button class="btn btn-primary" onclick="triggerDailyUpdate()" style="background: linear-gradient(135deg, #9f7aea, #667eea);">⏰ Trigger Daily Update</button>
                     </div>
                     <div id="adminExportButton" class="hidden">
-                        <button class="btn btn-primary" onclick="exportTokenReport()">📋 Export Report</button>
+                        <button class="btn btn-primary" onclick="exportTokenReport()">📋 Export Volume Report</button>
+                    </div>
+                    <div id="adminExportPrizeButton" class="hidden">
+                        <button class="btn btn-primary" onclick="exportPrizeReport()" style="background: linear-gradient(135deg, #f093fb, #f5576c);">🏆 Export Prize Report</button>
                     </div>
                     <div id="adminRefreshButton" class="hidden">
                         <button class="btn btn-success" onclick="refreshAllVolumes()">🔄 Refresh All Volumes</button>
@@ -748,6 +755,7 @@
             const addTokenSection = document.getElementById('addTokenSection');
             const refreshButton = document.getElementById('adminRefreshButton');
             const exportButton = document.getElementById('adminExportButton');
+            const exportPrizeButton = document.getElementById('adminExportPrizeButton');
             const triggerButton = document.getElementById('adminTriggerButton');
 
             // Check if all elements exist before proceeding
@@ -767,6 +775,7 @@
                 
                 if (refreshButton) refreshButton.classList.remove('hidden');
                 if (exportButton) exportButton.classList.remove('hidden');
+                if (exportPrizeButton) exportPrizeButton.classList.remove('hidden');
                 if (triggerButton) triggerButton.classList.remove('hidden');
                 loadScheduleInfo();
             } else {
@@ -779,6 +788,7 @@
                 
                 if (refreshButton) refreshButton.classList.add('hidden');
                 if (exportButton) exportButton.classList.add('hidden');
+                if (exportPrizeButton) exportPrizeButton.classList.add('hidden');
                 if (triggerButton) triggerButton.classList.add('hidden');
             }
         }
@@ -804,6 +814,10 @@
                         <label for="topYesterday">Top Volume Yesterday * (USD)</label>
                         <input type="number" id="topYesterday" min="0" step="0.01" placeholder="e.g., 150000" required>
                     </div>
+                    <div class="form-group">
+                        <label for="tokenAmount">Token Amount * (for prize calculation)</label>
+                        <input type="number" id="tokenAmount" min="0" step="0.000001" placeholder="e.g., 1000000" required>
+                    </div>
                 </form>
                 <div style="margin-top: 20px;">
                     <button type="submit" form="addTokenForm" class="btn btn-primary" onclick="addToken(event)">Add Token</button>
@@ -823,8 +837,9 @@
             const tokenSlug = document.getElementById('tokenSlug').value.trim();
             const topToday = parseFloat(document.getElementById('topToday').value);
             const topYesterday = parseFloat(document.getElementById('topYesterday').value);
+            const tokenAmount = parseFloat(document.getElementById('tokenAmount').value);
 
-            if (!tokenName || !tokenSlug || !topToday || !topYesterday) {
+            if (!tokenName || !tokenSlug || !topToday || !topYesterday || !tokenAmount) {
                 alert('Please fill in all required fields!');
                 return;
             }
@@ -834,7 +849,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        token: { name: tokenName, slug: tokenSlug, topToday, topYesterday },
+                        token: { name: tokenName, slug: tokenSlug, topToday, topYesterday, amount: tokenAmount },
                         adminPassword
                     })
                 });
@@ -909,6 +924,7 @@
                             <th>Trading Volume Today</th>
                             <th>Trading Volume Yesterday</th>
                             <th>Trading Volume Comparison</th>
+                            <th>Total Prize (USD)</th>
                             <th>Last Updated</th>
                             ${sectionType === 'archived' ? '<th>Archived</th>' : ''}
                             <th>Actions</th>
@@ -929,6 +945,13 @@
             const lastUpdated = token.lastUpdated ? new Date(token.lastUpdated).toLocaleString() : 'Never';
             const archivedDate = token.archivedAt ? new Date(token.archivedAt).toLocaleDateString() : '';
             
+            // Calculate and format total prize
+            const totalPrize = token.totalPrize !== null && token.totalPrize !== undefined 
+                ? formatCurrency(token.totalPrize) 
+                : (token.amount && token.currentPrice 
+                    ? formatCurrency(token.amount * token.currentPrice)
+                    : '<span class="loading">Calculating...</span>');
+            
             return `
                 <tr>
                     <td class="token-name">
@@ -941,6 +964,7 @@
                     <td class="volume-display">${token.volumeToday !== null ? formatCurrency(token.volumeToday) : '<span class="loading">Loading...</span>'}</td>
                     <td class="volume-display">${token.volumeYesterday !== null ? formatCurrency(token.volumeYesterday) : 'Not set'}</td>
                     <td>${volumeComparison}</td>
+                    <td class="prize-display" style="font-weight: 600; color: #2d3748;">${totalPrize}</td>
                     <td>${lastUpdated}</td>
                     ${sectionType === 'archived' ? `<td style="font-size: 12px; color: #718096;">${archivedDate}</td>` : ''}
                     ${generateActionButtons(token, sectionType)}
@@ -1022,12 +1046,13 @@
                     );
                     
                     if (rank1Cex) {
-                        // Update volume on server
+                        // Update volume and price on server
                         const updateResponse = await fetch(`/api/tokens/${tokenId}/volume`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 volume: rank1Cex.volumeUsd,
+                                price: rank1Cex.price, // Include price for totalPrize calculation
                                 adminPassword
                             })
                         });
@@ -1231,7 +1256,105 @@
             if (amount === null || amount === undefined) return 'N/A';
             return '$' + new Intl.NumberFormat('en-US', {
                 minimumFractionDigits: 0,
-                maximumFractionDigits: 0,
+                maximumFractionDigits: 2,
+            }).format(amount);
+        }
+
+        // Export prize report
+        function exportPrizeReport() {
+            if (!isAdminUser) {
+                alert('Admin access required');
+                return;
+            }
+
+            // Filter only ongoing tokens for export (exclude archived)
+            const ongoingTokens = tokens.filter(token => !token.status || token.status === 'ongoing');
+
+            if (ongoingTokens.length === 0) {
+                alert('No ongoing competitions to export');
+                return;
+            }
+
+            // Generate prize-focused report content
+            const reportDate = new Date().toLocaleString();
+            let reportContent = `Token Prize Report - Ongoing Competitions\n`;
+            reportContent += `Generated: ${reportDate}\n`;
+            reportContent += `Tokens Included: ${ongoingTokens.length} ongoing competitions\n`;
+            reportContent += `${'='.repeat(60)}\n\n`;
+
+            // Calculate total prize pool
+            let totalPrizePool = 0;
+            const tokensWithPrizes = ongoingTokens.filter(token => 
+                token.totalPrize !== null && token.totalPrize !== undefined && token.totalPrize > 0
+            );
+
+            ongoingTokens.forEach((token, index) => {
+                reportContent += `${token.name}\n`;
+                reportContent += `-`.repeat(token.name.length) + `\n`;
+                
+                // Prize information
+                const amount = token.amount || 0;
+                const currentPrice = token.currentPrice || 0;
+                const totalPrize = token.totalPrize || (amount * currentPrice);
+                
+                reportContent += `Token Amount:     ${formatNumberPlain(amount)}\n`;
+                reportContent += `Current Price:    ${formatCurrencyPlain(currentPrice)}\n`;
+                reportContent += `Total Prize:      ${formatCurrencyPlain(totalPrize)}\n`;
+                reportContent += `Last Updated:     ${token.lastUpdated ? new Date(token.lastUpdated).toLocaleString() : 'Never'}\n`;
+                
+                if (totalPrize > 0) {
+                    totalPrizePool += totalPrize;
+                }
+                
+                // Add blank line between tokens if there are multiple
+                if (index < ongoingTokens.length - 1) {
+                    reportContent += `\n`;
+                }
+            });
+
+            // Add prize summary
+            reportContent += `\n\n${'='.repeat(60)}\n`;
+            reportContent += `PRIZE SUMMARY\n`;
+            reportContent += `${'='.repeat(60)}\n`;
+            reportContent += `Total Tokens:           ${ongoingTokens.length}\n`;
+            reportContent += `Tokens with Prizes:     ${tokensWithPrizes.length}\n`;
+            reportContent += `Total Prize Pool:       ${formatCurrencyPlain(totalPrizePool)}\n`;
+            
+            if (tokensWithPrizes.length < ongoingTokens.length) {
+                const pendingCount = ongoingTokens.length - tokensWithPrizes.length;
+                reportContent += `Pending Price Data:     ${pendingCount} token(s)\n`;
+            }
+
+            // Add archived tokens note
+            const archivedCount = tokens.filter(token => token.status === 'archived').length;
+            if (archivedCount > 0) {
+                reportContent += `\nNote: ${archivedCount} archived competition(s) excluded from this report.\n`;
+            }
+
+            // Create and download file
+            const blob = new Blob([reportContent], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `prize-report-${new Date().toISOString().split('T')[0]}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+
+            const message = archivedCount > 0 
+                ? `🏆 Prize report exported successfully!\n\nTotal Prize Pool: ${formatCurrencyPlain(totalPrizePool)}\nExported: ${ongoingTokens.length} ongoing competitions\nExcluded: ${archivedCount} archived competitions`
+                : `🏆 Prize report exported successfully!\n\nTotal Prize Pool: ${formatCurrencyPlain(totalPrizePool)}\nExported: ${ongoingTokens.length} ongoing competitions`;
+            
+            alert(message);
+        }
+
+        // Format number for plain text (no currency symbol)
+        function formatNumberPlain(amount) {
+            if (amount === null || amount === undefined) return 'N/A';
+            return new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 6,
             }).format(amount);
         }
 
@@ -1350,333 +1473,79 @@
                 return;
             }
 
-            let historyHTML = '';
+            // Sort history data by timestamp (newest first) and assign to variables
+            const topVolumeHistory = (historyData.topVolumeHistory || []).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            const tradingVolumeHistory = (historyData.tradingVolumeHistory || []).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-            // Top Volume History Section
-            if (historyData.topVolumeHistory && historyData.topVolumeHistory.length > 0) {
-                // Sort by timestamp (newest first)
-                const sortedTopHistory = historyData.topVolumeHistory.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                
-                historyHTML += `
+            // Generate history HTML for both types
+            let historyHTML = `
+                <div class="history-sections">
                     <div class="history-section">
-                        <h3 class="history-title">📊 Top Volume History</h3>
-                        <div class="history-table">
-                            <table>
+                        <h4>📊 Top Volume History</h4>
+                        <div class="history-table-wrapper">
+                            <table class="history-table">
                                 <thead>
                                     <tr>
                                         <th>Date</th>
+                                        <th>Time</th>
                                         <th>Value</th>
-                                        <th>Previous Value</th>
+                                        <th>Previous</th>
                                         <th>Change</th>
                                         <th>Type</th>
-                                        <th>Time</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    ${sortedTopHistory.map(entry => `
-                                        <tr>
-                                            <td>${new Date(entry.date).toLocaleDateString()}</td>
-                                            <td>${formatCurrency(entry.value)}</td>
-                                            <td>${entry.previousValue ? formatCurrency(entry.previousValue) : '-'}</td>
-                                            <td>${getHistoryComparison(entry.previousValue, entry.value)}</td>
-                                            <td><span class="history-type ${entry.type}">${formatHistoryType(entry.type)}</span></td>
-                                            <td>${new Date(entry.timestamp).toLocaleTimeString()}</td>
-                                        </tr>
-                                    `).join('')}
+                                    ${topVolumeHistory.map(entry => generateHistoryRow(entry)).join('')}
                                 </tbody>
                             </table>
                         </div>
                     </div>
-                `;
-            }
-
-            // Trading Volume History Section
-            if (historyData.tradingVolumeHistory && historyData.tradingVolumeHistory.length > 0) {
-                // Sort by timestamp (newest first)
-                const sortedTradingHistory = historyData.tradingVolumeHistory.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                
-                historyHTML += `
+                    
                     <div class="history-section">
-                        <h3 class="history-title">📈 Trading Volume History</h3>
-                        <div class="history-table">
-                            <table>
+                        <h4>💹 Trading Volume History</h4>
+                        <div class="history-table-wrapper">
+                            <table class="history-table">
                                 <thead>
                                     <tr>
                                         <th>Date</th>
+                                        <th>Time</th>
                                         <th>Value</th>
-                                        <th>Previous Value</th>
+                                        <th>Previous</th>
                                         <th>Change</th>
                                         <th>Type</th>
-                                        <th>Time</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    ${sortedTradingHistory.map(entry => `
-                                        <tr>
-                                            <td>${new Date(entry.date).toLocaleDateString()}</td>
-                                            <td>${formatCurrency(entry.value)}</td>
-                                            <td>${entry.previousValue ? formatCurrency(entry.previousValue) : '-'}</td>
-                                            <td>${getHistoryComparison(entry.previousValue, entry.value)}</td>
-                                            <td><span class="history-type ${entry.type}">${formatHistoryType(entry.type)}</span></td>
-                                            <td>${new Date(entry.timestamp).toLocaleTimeString()}</td>
-                                        </tr>
-                                    `).join('')}
+                                    ${tradingVolumeHistory.map(entry => generateHistoryRow(entry)).join('')}
                                 </tbody>
                             </table>
                         </div>
                     </div>
-                `;
-            }
-
+                </div>
+            `;
+            
             content.innerHTML = historyHTML;
-            currentHistoryData = historyData; // Store current data for filtering
         }
 
-        // Update history filter based on selected date range
-        function updateHistoryFilter() {
-            if (!currentHistoryData) return;
-
-            const dateFilter = document.getElementById('dateFilter').value;
-            const specificDateRange = document.getElementById('specificDateRange');
-            const customDateRange = document.getElementById('customDateRange');
+        // Generate a single history row
+        function generateHistoryRow(entry) {
+            const date = new Date(entry.timestamp).toLocaleDateString();
+            const time = new Date(entry.timestamp).toLocaleTimeString();
+            const value = formatCurrency(entry.value);
+            const previousValue = entry.previousValue ? formatCurrency(entry.previousValue) : 'N/A';
+            const change = entry.previousValue ? getComparison(entry.previousValue, entry.value) : '-';
+            const type = entry.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
             
-            // Show/hide date input sections based on selection
-            if (dateFilter === 'specific') {
-                specificDateRange.classList.remove('hidden');
-                customDateRange.classList.add('hidden');
-            } else if (dateFilter === 'custom') {
-                specificDateRange.classList.add('hidden');
-                customDateRange.classList.remove('hidden');
-            } else {
-                specificDateRange.classList.add('hidden');
-                customDateRange.classList.add('hidden');
-            }
-            
-            // Apply filter and display
-            displayTokenHistoryFiltered(currentHistoryData, dateFilter);
-        }
-
-        // Get date range based on filter selection
-        function getDateRange(filter) {
-            const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            
-            switch (filter) {
-                case 'today':
-                    return {
-                        from: today,
-                        to: today
-                    };
-                case 'yesterday':
-                    const yesterday = new Date(today);
-                    yesterday.setDate(yesterday.getDate() - 1);
-                    return {
-                        from: yesterday,
-                        to: yesterday
-                    };
-                case 'last7days':
-                    const sevenDaysAgo = new Date(today);
-                    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-                    return {
-                        from: sevenDaysAgo,
-                        to: today
-                    };
-                case 'last30days':
-                    const thirtyDaysAgo = new Date(today);
-                    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-                    return {
-                        from: thirtyDaysAgo,
-                        to: today
-                    };
-                case 'specific':
-                    const specificDate = document.getElementById('specificDate').value;
-                    if (specificDate) {
-                        const selectedDate = new Date(specificDate);
-                        // Normalize to just the date part
-                        const normalizedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
-                        return {
-                            from: normalizedDate,
-                            to: normalizedDate
-                        };
-                    }
-                    return null;
-                case 'custom':
-                    const fromDate = document.getElementById('dateFrom').value;
-                    const toDate = document.getElementById('dateTo').value;
-                    if (fromDate && toDate) {
-                        const from = new Date(fromDate);
-                        const to = new Date(toDate);
-                        return {
-                            from: new Date(from.getFullYear(), from.getMonth(), from.getDate()),
-                            to: new Date(to.getFullYear(), to.getMonth(), to.getDate())
-                        };
-                    }
-                    return null;
-                default:
-                    return null; // Show all
-            }
-        }
-
-        // Filter history entries by date range
-        function filterHistoryByDate(historyArray, dateRange) {
-            if (!dateRange) return historyArray;
-            
-            return historyArray.filter(entry => {
-                // Get the date part of the entry (using the 'date' field if available, otherwise timestamp)
-                let entryDateToCheck;
-                if (entry.date) {
-                    entryDateToCheck = new Date(entry.date);
-                } else {
-                    entryDateToCheck = new Date(entry.timestamp);
-                }
-                
-                // Normalize to just the date part (ignore time)
-                const entryDateOnly = new Date(entryDateToCheck.getFullYear(), entryDateToCheck.getMonth(), entryDateToCheck.getDate());
-                const fromDateOnly = new Date(dateRange.from.getFullYear(), dateRange.from.getMonth(), dateRange.from.getDate());
-                const toDateOnly = new Date(dateRange.to.getFullYear(), dateRange.to.getMonth(), dateRange.to.getDate());
-                
-                return entryDateOnly >= fromDateOnly && entryDateOnly <= toDateOnly;
-            });
-        }
-
-        // Display token history with date filtering
-        function displayTokenHistoryFiltered(historyData, dateFilter) {
-            const content = document.getElementById('historyContent');
-            const dateRange = getDateRange(dateFilter);
-            
-            // Filter the data
-            let topVolumeHistory = historyData.topVolumeHistory || [];
-            let tradingVolumeHistory = historyData.tradingVolumeHistory || [];
-            
-            if (dateRange) {
-                topVolumeHistory = filterHistoryByDate(topVolumeHistory, dateRange);
-                tradingVolumeHistory = filterHistoryByDate(tradingVolumeHistory, dateRange);
-            }
-            
-            if (topVolumeHistory.length === 0 && tradingVolumeHistory.length === 0) {
-                let filterText = '';
-                if (dateFilter === 'specific') {
-                    const specificDate = document.getElementById('specificDate').value;
-                    if (specificDate) {
-                        filterText = ` for ${new Date(specificDate).toLocaleDateString()}`;
-                    } else {
-                        filterText = ' for the selected date';
-                    }
-                } else if (dateFilter !== 'all') {
-                    filterText = ` for the selected date range`;
-                }
-                
-                content.innerHTML = `
-                    <div class="no-history">
-                        <p>📊 No historical data available${filterText}</p>
-                        ${dateFilter !== 'all' ? '<p>Try selecting a different date or "All dates" to see all available history</p>' : ''}
-                    </div>
-                `;
-                return;
-            }
-
-            let historyHTML = '';
-            
-            // Create filter description for section headers
-            let filterDescription = '';
-            if (dateFilter === 'specific') {
-                const specificDate = document.getElementById('specificDate').value;
-                if (specificDate) {
-                    filterDescription = ` - ${new Date(specificDate).toLocaleDateString()}`;
-                }
-            } else if (dateFilter === 'today') {
-                filterDescription = ' - Today';
-            } else if (dateFilter === 'yesterday') {
-                filterDescription = ' - Yesterday';
-            } else if (dateFilter === 'last7days') {
-                filterDescription = ' - Last 7 Days';
-            } else if (dateFilter === 'last30days') {
-                filterDescription = ' - Last 30 Days';
-            } else if (dateFilter === 'custom') {
-                const fromDate = document.getElementById('dateFrom').value;
-                const toDate = document.getElementById('dateTo').value;
-                if (fromDate && toDate) {
-                    filterDescription = ` - ${new Date(fromDate).toLocaleDateString()} to ${new Date(toDate).toLocaleDateString()}`;
-                }
-            }
-
-            // Top Volume History Section
-            if (topVolumeHistory.length > 0) {
-                // Sort by timestamp (newest first, but user can see the filter range)
-                const sortedTopHistory = [...topVolumeHistory].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                
-                historyHTML += `
-                    <div class="history-section">
-                        <h3 class="history-title">📊 Top Volume History${filterDescription} (${topVolumeHistory.length} entries)</h3>
-                        <div class="history-table">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Value</th>
-                                        <th>Previous Value</th>
-                                        <th>Change</th>
-                                        <th>Type</th>
-                                        <th>Time</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${sortedTopHistory.map(entry => `
-                                        <tr>
-                                            <td>${new Date(entry.date).toLocaleDateString()}</td>
-                                            <td>${formatCurrency(entry.value)}</td>
-                                            <td>${entry.previousValue ? formatCurrency(entry.previousValue) : '-'}</td>
-                                            <td>${getHistoryComparison(entry.previousValue, entry.value)}</td>
-                                            <td><span class="history-type ${entry.type}">${formatHistoryType(entry.type)}</span></td>
-                                            <td>${new Date(entry.timestamp).toLocaleTimeString()}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                `;
-            }
-
-            // Trading Volume History Section
-            if (tradingVolumeHistory.length > 0) {
-                // Sort by timestamp (newest first, but user can see the filter range)
-                const sortedTradingHistory = [...tradingVolumeHistory].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                
-                historyHTML += `
-                    <div class="history-section">
-                        <h3 class="history-title">📈 Trading Volume History${filterDescription} (${tradingVolumeHistory.length} entries)</h3>
-                        <div class="history-table">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Value</th>
-                                        <th>Previous Value</th>
-                                        <th>Change</th>
-                                        <th>Type</th>
-                                        <th>Time</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${sortedTradingHistory.map(entry => `
-                                        <tr>
-                                            <td>${new Date(entry.date).toLocaleDateString()}</td>
-                                            <td>${formatCurrency(entry.value)}</td>
-                                            <td>${entry.previousValue ? formatCurrency(entry.previousValue) : '-'}</td>
-                                            <td>${getHistoryComparison(entry.previousValue, entry.value)}</td>
-                                            <td><span class="history-type ${entry.type}">${formatHistoryType(entry.type)}</span></td>
-                                            <td>${new Date(entry.timestamp).toLocaleTimeString()}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                `;
-            }
-
-            content.innerHTML = historyHTML;
+            return `
+                <tr>
+                    <td>${date}</td>
+                    <td>${time}</td>
+                    <td>${value}</td>
+                    <td>${previousValue}</td>
+                    <td>${change}</td>
+                    <td><span class="history-type">${type}</span></td>
+                </tr>
+            `;
         }
 
         // Close history modal
@@ -1684,101 +1553,13 @@
             document.getElementById('historyModal').style.display = 'none';
         }
 
-        // Format history type for display
-        function formatHistoryType(type) {
-            const types = {
-                'manual_entry': 'Manual Entry',
-                'manual_update': 'Manual Update',
-                'manual_shift_update': 'Manual Shift Update',
-                'manual_correction': 'Manual Correction',
-                'manual_backfill': 'Manual Backfill',
-                'api_fetch': 'API Fetch',
-                'daily_fetch': 'Daily Fetch',
-                'daily_shift': 'Daily Shift',
-                'shifted_from_today': 'Shifted from Today',
-                'competition_archived': 'Competition Archived',
-                'competition_restored': 'Competition Restored'
-            };
-            return types[type] || type;
-        }
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTokensFromServer();
+            loadScheduleInfo(); // Load schedule information on page load
+            updateUI(); // Initialize UI state
+        });
 
-        // Get comparison for history entries
-        function getHistoryComparison(oldValue, newValue) {
-            if (!oldValue || oldValue === null) return '-';
-            
-            const difference = newValue - oldValue;
-            const percentage = ((difference / oldValue) * 100).toFixed(2);
-            const arrow = difference > 0 ? '📈' : difference < 0 ? '📉' : '➡️';
-            const color = difference > 0 ? '#38a169' : difference < 0 ? '#e53e3e' : '#718096';
-            
-            return `<span style="color: ${color};">
-                ${arrow} ${formatCurrency(Math.abs(difference))} (${Math.abs(percentage)}%)
-            </span>`;
-        }
-
-        // Close modal when clicking outside of it
-        window.onclick = function(event) {
-            const historyModal = document.getElementById('historyModal');
-            if (event.target === historyModal) {
-                historyModal.style.display = 'none';
-            }
-        };
-
-        // Archive token
-        async function archiveToken(tokenId) {
-            if (!isAdminUser) return;
-
-            const token = tokens.find(t => t.id === tokenId);
-            if (!token) return;
-
-            if (confirm(`Archive "${token.name}"?\n\nThis will move it to the "Finished Competition" section. You can restore it later if needed.`)) {
-                try {
-                    const response = await fetch(`/api/tokens/${tokenId}/archive`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ adminPassword, archived: true })
-                    });
-
-                    if (response.ok) {
-                        await loadTokensFromServer();
-                        alert(`✅ ${token.name} moved to Finished Competition!`);
-                    } else {
-                        const result = await response.json();
-                        alert('❌ Error: ' + result.error);
-                    }
-                } catch (error) {
-                    alert('Error archiving token: ' + error.message);
-                }
-            }
-        }
-
-        // Unarchive token
-        async function unarchiveToken(tokenId) {
-            if (!isAdminUser) return;
-
-            const token = tokens.find(t => t.id === tokenId);
-            if (!token) return;
-
-            if (confirm(`Restore "${token.name}" to Ongoing Competition?`)) {
-                try {
-                    const response = await fetch(`/api/tokens/${tokenId}/archive`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ adminPassword, archived: false })
-                    });
-
-                    if (response.ok) {
-                        await loadTokensFromServer();
-                        alert(`✅ ${token.name} restored to Ongoing Competition!`);
-                    } else {
-                        const result = await response.json();
-                        alert('❌ Error: ' + result.error);
-                    }
-                } catch (error) {
-                    alert('Error restoring token: ' + error.message);
-                }
-            }
-        }
     </script>
 </body>
 </html>
