@@ -422,14 +422,6 @@ async function performDailyVolumeUpdate() {
                     });
                 }
                 
-                // Store today's top volume in history (daily snapshot)
-                token.topVolumeHistory.push({
-                    date: currentDate,
-                    value: token.topToday,
-                    timestamp: currentTimestamp,
-                    type: 'daily_snapshot'
-                });
-                
                 // Shift volumes: today → yesterday, new → today
                 token.volumeYesterday = token.volumeToday;
                 token.volumeToday = newVolume;

@@ -430,7 +430,6 @@
         .history-type.api_fetch { background: #e6f7ff; color: #3182ce; }
         .history-type.daily_fetch { background: #f0fff4; color: #38a169; }
         .history-type.daily_shift { background: #faf5ff; color: #805ad5; }
-        .history-type.daily_snapshot { background: #fff5f5; color: #e53e3e; }
         .history-type.competition_archived { background: #f7fafc; color: #4a5568; }
         .history-type.competition_restored { background: #f0fff4; color: #38a169; }
 
@@ -469,6 +468,46 @@
 
         .competition-section:last-child {
             margin-bottom: 0;
+        }
+
+        .history-filters {
+            padding: 15px 25px;
+            background: #f7fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .filter-group label {
+            font-weight: 500;
+            color: #4a5568;
+            white-space: nowrap;
+        }
+
+        .filter-group select,
+        .filter-group input[type="date"] {
+            padding: 6px 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            background: white;
+            font-size: 13px;
+            color: #4a5568;
+        }
+
+        .filter-group select:focus,
+        .filter-group input[type="date"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
     </style>
 </head>
@@ -595,6 +634,30 @@
                 <h2 class="modal-title" id="modalTitle">Token History</h2>
                 <span class="close" onclick="closeHistoryModal()">&times;</span>
             </div>
+            <div class="history-filters">
+                <div class="filter-group">
+                    <label for="dateFilter">Filter by date:</label>
+                    <select id="dateFilter" onchange="updateHistoryFilter()">
+                        <option value="all">All dates</option>
+                        <option value="today">Today</option>
+                        <option value="yesterday">Yesterday</option>
+                        <option value="last7days">Last 7 days</option>
+                        <option value="last30days">Last 30 days</option>
+                        <option value="specific">Specific date</option>
+                        <option value="custom">Custom range</option>
+                    </select>
+                </div>
+                <div id="specificDateRange" class="filter-group hidden">
+                    <label for="specificDate">Select date:</label>
+                    <input type="date" id="specificDate" onchange="updateHistoryFilter()">
+                </div>
+                <div id="customDateRange" class="filter-group hidden">
+                    <label for="dateFrom">From:</label>
+                    <input type="date" id="dateFrom" onchange="updateHistoryFilter()">
+                    <label for="dateTo">To:</label>
+                    <input type="date" id="dateTo" onchange="updateHistoryFilter()">
+                </div>
+            </div>
             <div id="historyContent">
                 Loading history...
             </div>
@@ -605,6 +668,7 @@
         let tokens = [];
         let isAdminUser = false;
         let adminPassword = '';
+        let currentHistoryData = null; // Store current history data for filtering
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
@@ -1290,6 +1354,9 @@
 
             // Top Volume History Section
             if (historyData.topVolumeHistory && historyData.topVolumeHistory.length > 0) {
+                // Sort by timestamp (newest first)
+                const sortedTopHistory = historyData.topVolumeHistory.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
                 historyHTML += `
                     <div class="history-section">
                         <h3 class="history-title">📊 Top Volume History</h3>
@@ -1306,7 +1373,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    ${historyData.topVolumeHistory.map(entry => `
+                                    ${sortedTopHistory.map(entry => `
                                         <tr>
                                             <td>${new Date(entry.date).toLocaleDateString()}</td>
                                             <td>${formatCurrency(entry.value)}</td>
@@ -1325,6 +1392,9 @@
 
             // Trading Volume History Section
             if (historyData.tradingVolumeHistory && historyData.tradingVolumeHistory.length > 0) {
+                // Sort by timestamp (newest first)
+                const sortedTradingHistory = historyData.tradingVolumeHistory.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
                 historyHTML += `
                     <div class="history-section">
                         <h3 class="history-title">📈 Trading Volume History</h3>
@@ -1341,7 +1411,255 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    ${historyData.tradingVolumeHistory.map(entry => `
+                                    ${sortedTradingHistory.map(entry => `
+                                        <tr>
+                                            <td>${new Date(entry.date).toLocaleDateString()}</td>
+                                            <td>${formatCurrency(entry.value)}</td>
+                                            <td>${entry.previousValue ? formatCurrency(entry.previousValue) : '-'}</td>
+                                            <td>${getHistoryComparison(entry.previousValue, entry.value)}</td>
+                                            <td><span class="history-type ${entry.type}">${formatHistoryType(entry.type)}</span></td>
+                                            <td>${new Date(entry.timestamp).toLocaleTimeString()}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            content.innerHTML = historyHTML;
+            currentHistoryData = historyData; // Store current data for filtering
+        }
+
+        // Update history filter based on selected date range
+        function updateHistoryFilter() {
+            if (!currentHistoryData) return;
+
+            const dateFilter = document.getElementById('dateFilter').value;
+            const specificDateRange = document.getElementById('specificDateRange');
+            const customDateRange = document.getElementById('customDateRange');
+            
+            // Show/hide date input sections based on selection
+            if (dateFilter === 'specific') {
+                specificDateRange.classList.remove('hidden');
+                customDateRange.classList.add('hidden');
+            } else if (dateFilter === 'custom') {
+                specificDateRange.classList.add('hidden');
+                customDateRange.classList.remove('hidden');
+            } else {
+                specificDateRange.classList.add('hidden');
+                customDateRange.classList.add('hidden');
+            }
+            
+            // Apply filter and display
+            displayTokenHistoryFiltered(currentHistoryData, dateFilter);
+        }
+
+        // Get date range based on filter selection
+        function getDateRange(filter) {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            
+            switch (filter) {
+                case 'today':
+                    return {
+                        from: today,
+                        to: today
+                    };
+                case 'yesterday':
+                    const yesterday = new Date(today);
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    return {
+                        from: yesterday,
+                        to: yesterday
+                    };
+                case 'last7days':
+                    const sevenDaysAgo = new Date(today);
+                    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                    return {
+                        from: sevenDaysAgo,
+                        to: today
+                    };
+                case 'last30days':
+                    const thirtyDaysAgo = new Date(today);
+                    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                    return {
+                        from: thirtyDaysAgo,
+                        to: today
+                    };
+                case 'specific':
+                    const specificDate = document.getElementById('specificDate').value;
+                    if (specificDate) {
+                        const selectedDate = new Date(specificDate);
+                        // Normalize to just the date part
+                        const normalizedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+                        return {
+                            from: normalizedDate,
+                            to: normalizedDate
+                        };
+                    }
+                    return null;
+                case 'custom':
+                    const fromDate = document.getElementById('dateFrom').value;
+                    const toDate = document.getElementById('dateTo').value;
+                    if (fromDate && toDate) {
+                        const from = new Date(fromDate);
+                        const to = new Date(toDate);
+                        return {
+                            from: new Date(from.getFullYear(), from.getMonth(), from.getDate()),
+                            to: new Date(to.getFullYear(), to.getMonth(), to.getDate())
+                        };
+                    }
+                    return null;
+                default:
+                    return null; // Show all
+            }
+        }
+
+        // Filter history entries by date range
+        function filterHistoryByDate(historyArray, dateRange) {
+            if (!dateRange) return historyArray;
+            
+            return historyArray.filter(entry => {
+                // Get the date part of the entry (using the 'date' field if available, otherwise timestamp)
+                let entryDateToCheck;
+                if (entry.date) {
+                    entryDateToCheck = new Date(entry.date);
+                } else {
+                    entryDateToCheck = new Date(entry.timestamp);
+                }
+                
+                // Normalize to just the date part (ignore time)
+                const entryDateOnly = new Date(entryDateToCheck.getFullYear(), entryDateToCheck.getMonth(), entryDateToCheck.getDate());
+                const fromDateOnly = new Date(dateRange.from.getFullYear(), dateRange.from.getMonth(), dateRange.from.getDate());
+                const toDateOnly = new Date(dateRange.to.getFullYear(), dateRange.to.getMonth(), dateRange.to.getDate());
+                
+                return entryDateOnly >= fromDateOnly && entryDateOnly <= toDateOnly;
+            });
+        }
+
+        // Display token history with date filtering
+        function displayTokenHistoryFiltered(historyData, dateFilter) {
+            const content = document.getElementById('historyContent');
+            const dateRange = getDateRange(dateFilter);
+            
+            // Filter the data
+            let topVolumeHistory = historyData.topVolumeHistory || [];
+            let tradingVolumeHistory = historyData.tradingVolumeHistory || [];
+            
+            if (dateRange) {
+                topVolumeHistory = filterHistoryByDate(topVolumeHistory, dateRange);
+                tradingVolumeHistory = filterHistoryByDate(tradingVolumeHistory, dateRange);
+            }
+            
+            if (topVolumeHistory.length === 0 && tradingVolumeHistory.length === 0) {
+                let filterText = '';
+                if (dateFilter === 'specific') {
+                    const specificDate = document.getElementById('specificDate').value;
+                    if (specificDate) {
+                        filterText = ` for ${new Date(specificDate).toLocaleDateString()}`;
+                    } else {
+                        filterText = ' for the selected date';
+                    }
+                } else if (dateFilter !== 'all') {
+                    filterText = ` for the selected date range`;
+                }
+                
+                content.innerHTML = `
+                    <div class="no-history">
+                        <p>📊 No historical data available${filterText}</p>
+                        ${dateFilter !== 'all' ? '<p>Try selecting a different date or "All dates" to see all available history</p>' : ''}
+                    </div>
+                `;
+                return;
+            }
+
+            let historyHTML = '';
+            
+            // Create filter description for section headers
+            let filterDescription = '';
+            if (dateFilter === 'specific') {
+                const specificDate = document.getElementById('specificDate').value;
+                if (specificDate) {
+                    filterDescription = ` - ${new Date(specificDate).toLocaleDateString()}`;
+                }
+            } else if (dateFilter === 'today') {
+                filterDescription = ' - Today';
+            } else if (dateFilter === 'yesterday') {
+                filterDescription = ' - Yesterday';
+            } else if (dateFilter === 'last7days') {
+                filterDescription = ' - Last 7 Days';
+            } else if (dateFilter === 'last30days') {
+                filterDescription = ' - Last 30 Days';
+            } else if (dateFilter === 'custom') {
+                const fromDate = document.getElementById('dateFrom').value;
+                const toDate = document.getElementById('dateTo').value;
+                if (fromDate && toDate) {
+                    filterDescription = ` - ${new Date(fromDate).toLocaleDateString()} to ${new Date(toDate).toLocaleDateString()}`;
+                }
+            }
+
+            // Top Volume History Section
+            if (topVolumeHistory.length > 0) {
+                // Sort by timestamp (newest first, but user can see the filter range)
+                const sortedTopHistory = [...topVolumeHistory].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
+                historyHTML += `
+                    <div class="history-section">
+                        <h3 class="history-title">📊 Top Volume History${filterDescription} (${topVolumeHistory.length} entries)</h3>
+                        <div class="history-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Value</th>
+                                        <th>Previous Value</th>
+                                        <th>Change</th>
+                                        <th>Type</th>
+                                        <th>Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${sortedTopHistory.map(entry => `
+                                        <tr>
+                                            <td>${new Date(entry.date).toLocaleDateString()}</td>
+                                            <td>${formatCurrency(entry.value)}</td>
+                                            <td>${entry.previousValue ? formatCurrency(entry.previousValue) : '-'}</td>
+                                            <td>${getHistoryComparison(entry.previousValue, entry.value)}</td>
+                                            <td><span class="history-type ${entry.type}">${formatHistoryType(entry.type)}</span></td>
+                                            <td>${new Date(entry.timestamp).toLocaleTimeString()}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Trading Volume History Section
+            if (tradingVolumeHistory.length > 0) {
+                // Sort by timestamp (newest first, but user can see the filter range)
+                const sortedTradingHistory = [...tradingVolumeHistory].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
+                historyHTML += `
+                    <div class="history-section">
+                        <h3 class="history-title">📈 Trading Volume History${filterDescription} (${tradingVolumeHistory.length} entries)</h3>
+                        <div class="history-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Value</th>
+                                        <th>Previous Value</th>
+                                        <th>Change</th>
+                                        <th>Type</th>
+                                        <th>Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${sortedTradingHistory.map(entry => `
                                         <tr>
                                             <td>${new Date(entry.date).toLocaleDateString()}</td>
                                             <td>${formatCurrency(entry.value)}</td>
@@ -1377,7 +1695,6 @@
                 'api_fetch': 'API Fetch',
                 'daily_fetch': 'Daily Fetch',
                 'daily_shift': 'Daily Shift',
-                'daily_snapshot': 'Daily Snapshot',
                 'shifted_from_today': 'Shifted from Today',
                 'competition_archived': 'Competition Archived',
                 'competition_restored': 'Competition Restored'
