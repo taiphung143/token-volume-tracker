@@ -4,11 +4,34 @@
       "id": 1758350295068,
       "name": "HEMI",
       "slug": "hemi",
-      "topToday": 55,
+      "topToday": 100,
       "topYesterday": 55,
-      "volumeToday": 820082208.1898586,
+      "volumeToday": 704378325.397234,
       "volumeYesterday": 821150722.3474069,
-      "lastUpdated": "2025-09-20T17:20:00.476Z"
+      "lastUpdated": "2025-09-21T13:12:23.519Z",
+      "topVolumeHistory": [
+        {
+          "date": "2025-09-21",
+          "value": 100,
+          "previousValue": 55,
+          "timestamp": "2025-09-21T13:12:36.863Z",
+          "type": "manual_update"
+        }
+      ],
+      "tradingVolumeHistory": [
+        {
+          "date": "2025-09-21",
+          "value": 704378325.397234,
+          "timestamp": "2025-09-21T13:10:23.352Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 704378325.397234,
+          "timestamp": "2025-09-21T13:12:23.519Z",
+          "type": "api_fetch"
+        }
+      ]
     },
     {
       "id": 1758350562749,
@@ -16,9 +39,24 @@
       "slug": "tradoor",
       "topToday": 5,
       "topYesterday": 55,
-      "volumeToday": 653597253.2885389,
+      "volumeToday": 556854168.5897976,
       "volumeYesterday": 653243092.2112917,
-      "lastUpdated": "2025-09-20T17:20:01.794Z"
+      "lastUpdated": "2025-09-21T13:12:24.442Z",
+      "topVolumeHistory": [],
+      "tradingVolumeHistory": [
+        {
+          "date": "2025-09-21",
+          "value": 556854168.5897976,
+          "timestamp": "2025-09-21T13:10:24.215Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 556854168.5897976,
+          "timestamp": "2025-09-21T13:12:24.442Z",
+          "type": "api_fetch"
+        }
+      ]
     },
     {
       "id": 1758362944177,
@@ -26,9 +64,24 @@
       "slug": "portaltobitcoin",
       "topToday": 55,
       "topYesterday": 55,
-      "volumeToday": 487995902.4595005,
+      "volumeToday": 620767255.3338934,
       "volumeYesterday": 487897087.8663599,
-      "lastUpdated": "2025-09-20T17:20:03.114Z"
+      "lastUpdated": "2025-09-21T13:12:25.275Z",
+      "topVolumeHistory": [],
+      "tradingVolumeHistory": [
+        {
+          "date": "2025-09-21",
+          "value": 620767255.3338934,
+          "timestamp": "2025-09-21T13:10:25.056Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 620767255.3338934,
+          "timestamp": "2025-09-21T13:12:25.275Z",
+          "type": "api_fetch"
+        }
+      ]
     },
     {
       "id": 1758363199720,
@@ -36,9 +89,24 @@
       "slug": "privasea-ai",
       "topToday": 55,
       "topYesterday": 55,
-      "volumeToday": 139859634.10070392,
+      "volumeToday": 192934853.7268896,
       "volumeYesterday": 139124321.7552031,
-      "lastUpdated": "2025-09-20T17:20:04.499Z"
+      "lastUpdated": "2025-09-21T13:12:26.168Z",
+      "topVolumeHistory": [],
+      "tradingVolumeHistory": [
+        {
+          "date": "2025-09-21",
+          "value": 192934853.7268896,
+          "timestamp": "2025-09-21T13:10:25.906Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 192934853.7268896,
+          "timestamp": "2025-09-21T13:12:26.168Z",
+          "type": "api_fetch"
+        }
+      ]
     },
     {
       "id": 1758363239984,
@@ -46,9 +114,24 @@
       "slug": "saros",
       "topToday": 55,
       "topYesterday": 55,
-      "volumeToday": 42728697.61473003,
+      "volumeToday": 183861224.8750443,
       "volumeYesterday": 42734083.66406424,
-      "lastUpdated": "2025-09-20T17:20:05.887Z"
+      "lastUpdated": "2025-09-21T13:12:27.024Z",
+      "topVolumeHistory": [],
+      "tradingVolumeHistory": [
+        {
+          "date": "2025-09-21",
+          "value": 183861224.8750443,
+          "timestamp": "2025-09-21T13:10:26.769Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 183861224.8750443,
+          "timestamp": "2025-09-21T13:12:27.024Z",
+          "type": "api_fetch"
+        }
+      ]
     },
     {
       "id": 1758363326268,
@@ -56,10 +139,25 @@
       "slug": "sidekick-fans",
       "topToday": 1,
       "topYesterday": 1,
-      "volumeToday": 4510522.45008767,
+      "volumeToday": 13478789.75338281,
       "volumeYesterday": 4468729.66952292,
-      "lastUpdated": "2025-09-20T17:20:07.216Z"
+      "lastUpdated": "2025-09-21T13:12:27.865Z",
+      "topVolumeHistory": [],
+      "tradingVolumeHistory": [
+        {
+          "date": "2025-09-21",
+          "value": 13478789.75338281,
+          "timestamp": "2025-09-21T13:10:27.614Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 13478789.75338281,
+          "timestamp": "2025-09-21T13:12:27.865Z",
+          "type": "api_fetch"
+        }
+      ]
     }
   ],
-  "lastUpdated": "2025-09-20T17:20:08.217Z"
+  "lastUpdated": "2025-09-21T13:12:36.863Z"
 }

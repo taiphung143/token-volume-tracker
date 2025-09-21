@@ -70,7 +70,7 @@ app.post('/api/tokens', (req, res) => {
             return res.status(400).json({ error: 'Token with this slug already exists' });
         }
         
-        // Add new token
+        // Add new token with history arrays
         const newToken = {
             id: Date.now(),
             name: token.name.toUpperCase(),
@@ -79,7 +79,17 @@ app.post('/api/tokens', (req, res) => {
             topYesterday: parseFloat(token.topYesterday),
             volumeToday: null,
             volumeYesterday: null,
-            lastUpdated: null
+            lastUpdated: null,
+            // New historical data arrays
+            topVolumeHistory: [
+                {
+                    date: new Date().toISOString().split('T')[0],
+                    value: parseFloat(token.topToday),
+                    timestamp: new Date().toISOString(),
+                    type: 'manual_entry'
+                }
+            ],
+            tradingVolumeHistory: []
         };
         
         db.tokens.push(newToken);
@@ -113,9 +123,65 @@ app.put('/api/tokens/:id', (req, res) => {
             return res.status(404).json({ error: 'Token not found' });
         }
         
+        const token = db.tokens[tokenIndex];
+        const currentDate = new Date().toISOString().split('T')[0];
+        const currentTimestamp = new Date().toISOString();
+        
+        // Initialize history arrays if they don't exist (for existing tokens)
+        if (!token.topVolumeHistory) token.topVolumeHistory = [];
+        if (!token.tradingVolumeHistory) token.tradingVolumeHistory = [];
+        
+        // Track top volume changes
+        if (updates.topToday !== undefined && updates.topToday !== token.topToday) {
+            token.topVolumeHistory.push({
+                date: currentDate,
+                value: parseFloat(updates.topToday),
+                previousValue: token.topToday,
+                timestamp: currentTimestamp,
+                type: 'manual_update'
+            });
+        }
+        
+        if (updates.topYesterday !== undefined && updates.topYesterday !== token.topYesterday) {
+            // Find if there's already an entry for yesterday
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayDate = yesterday.toISOString().split('T')[0];
+            
+            const existingEntry = token.topVolumeHistory.find(entry => entry.date === yesterdayDate);
+            if (existingEntry) {
+                existingEntry.value = parseFloat(updates.topYesterday);
+                existingEntry.timestamp = currentTimestamp;
+                existingEntry.type = 'manual_correction';
+            } else {
+                token.topVolumeHistory.push({
+                    date: yesterdayDate,
+                    value: parseFloat(updates.topYesterday),
+                    previousValue: token.topYesterday,
+                    timestamp: currentTimestamp,
+                    type: 'manual_backfill'
+                });
+            }
+        }
+        
+        // Track trading volume changes
+        if (updates.volumeYesterday !== undefined && updates.volumeYesterday !== token.volumeYesterday) {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayDate = yesterday.toISOString().split('T')[0];
+            
+            token.tradingVolumeHistory.push({
+                date: yesterdayDate,
+                value: parseFloat(updates.volumeYesterday),
+                previousValue: token.volumeYesterday,
+                timestamp: currentTimestamp,
+                type: 'manual_backfill'
+            });
+        }
+        
         // Update token
-        Object.assign(db.tokens[tokenIndex], updates);
-        db.lastUpdated = new Date().toISOString();
+        Object.assign(token, updates);
+        db.lastUpdated = currentTimestamp;
         
         if (saveDatabase(db)) {
             res.json({ success: true, token: db.tokens[tokenIndex] });
@@ -177,14 +243,43 @@ app.put('/api/tokens/:id/volume', (req, res) => {
             return res.status(404).json({ error: 'Token not found' });
         }
         
+        const currentDate = new Date().toISOString().split('T')[0];
+        const currentTimestamp = new Date().toISOString();
+        
+        // Initialize history arrays if they don't exist (for existing tokens)
+        if (!token.topVolumeHistory) token.topVolumeHistory = [];
+        if (!token.tradingVolumeHistory) token.tradingVolumeHistory = [];
+        
         // Store previous volume as yesterday's volume if not set
         if (token.volumeYesterday === null && token.volumeToday !== null) {
             token.volumeYesterday = token.volumeToday;
+            
+            // Add to trading volume history
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayDate = yesterday.toISOString().split('T')[0];
+            
+            token.tradingVolumeHistory.push({
+                date: yesterdayDate,
+                value: token.volumeToday,
+                timestamp: currentTimestamp,
+                type: 'shifted_from_today'
+            });
         }
         
+        // Update current volume and add to history
         token.volumeToday = volume;
-        token.lastUpdated = new Date().toISOString();
-        db.lastUpdated = new Date().toISOString();
+        token.lastUpdated = currentTimestamp;
+        
+        // Add current volume to trading history
+        token.tradingVolumeHistory.push({
+            date: currentDate,
+            value: volume,
+            timestamp: currentTimestamp,
+            type: 'api_fetch'
+        });
+        
+        db.lastUpdated = currentTimestamp;
         
         if (saveDatabase(db)) {
             res.json({ success: true, token });
@@ -250,20 +345,56 @@ async function performDailyVolumeUpdate() {
     try {
         const db = loadDatabase();
         let updatedCount = 0;
+        const currentDate = new Date().toISOString().split('T')[0];
+        const currentTimestamp = new Date().toISOString();
         
         for (const token of db.tokens) {
             console.log(`Processing ${token.name}...`);
+            
+            // Initialize history arrays if they don't exist (for existing tokens)
+            if (!token.topVolumeHistory) token.topVolumeHistory = [];
+            if (!token.tradingVolumeHistory) token.tradingVolumeHistory = [];
             
             // Fetch new volume
             const newVolume = await fetchVolumeForToken(token);
             
             if (newVolume !== null) {
+                // Store today's volume as yesterday's in history before shifting
+                if (token.volumeToday !== null) {
+                    const yesterday = new Date();
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    const yesterdayDate = yesterday.toISOString().split('T')[0];
+                    
+                    token.tradingVolumeHistory.push({
+                        date: yesterdayDate,
+                        value: token.volumeToday,
+                        timestamp: currentTimestamp,
+                        type: 'daily_shift'
+                    });
+                }
+                
+                // Store today's top volume in history (daily snapshot)
+                token.topVolumeHistory.push({
+                    date: currentDate,
+                    value: token.topToday,
+                    timestamp: currentTimestamp,
+                    type: 'daily_snapshot'
+                });
+                
                 // Shift volumes: today → yesterday, new → today
                 token.volumeYesterday = token.volumeToday;
                 token.volumeToday = newVolume;
-                token.lastUpdated = new Date().toISOString();
-                updatedCount++;
+                token.lastUpdated = currentTimestamp;
                 
+                // Add new volume to history
+                token.tradingVolumeHistory.push({
+                    date: currentDate,
+                    value: newVolume,
+                    timestamp: currentTimestamp,
+                    type: 'daily_fetch'
+                });
+                
+                updatedCount++;
                 console.log(`✅ Updated ${token.name}: New volume = $${newVolume.toLocaleString()}`);
             } else {
                 console.log(`❌ Failed to fetch volume for ${token.name}`);
@@ -274,7 +405,7 @@ async function performDailyVolumeUpdate() {
         }
         
         // Save updated database
-        db.lastUpdated = new Date().toISOString();
+        db.lastUpdated = currentTimestamp;
         if (saveDatabase(db)) {
             console.log(`🎉 Daily volume update completed! Updated ${updatedCount}/${db.tokens.length} tokens`);
         } else {
@@ -335,6 +466,67 @@ app.get('/api/schedule-info', (req, res) => {
     });
 });
 
+// Get historical data for a token
+app.get('/api/tokens/:id/history', (req, res) => {
+    try {
+        const { id } = req.params;
+        const db = loadDatabase();
+        const token = db.tokens.find(t => t.id === parseInt(id));
+        
+        if (!token) {
+            return res.status(404).json({ error: 'Token not found' });
+        }
+        
+        // Initialize history arrays if they don't exist
+        const topVolumeHistory = token.topVolumeHistory || [];
+        const tradingVolumeHistory = token.tradingVolumeHistory || [];
+        
+        res.json({
+            tokenName: token.name,
+            topVolumeHistory: topVolumeHistory.sort((a, b) => new Date(b.date) - new Date(a.date)),
+            tradingVolumeHistory: tradingVolumeHistory.sort((a, b) => new Date(b.date) - new Date(a.date))
+        });
+        
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to get token history' });
+    }
+});
+
+// Get all tokens with summary statistics
+app.get('/api/tokens/stats', (req, res) => {
+    try {
+        const db = loadDatabase();
+        const stats = db.tokens.map(token => {
+            const topHistory = token.topVolumeHistory || [];
+            const tradingHistory = token.tradingVolumeHistory || [];
+            
+            return {
+                id: token.id,
+                name: token.name,
+                slug: token.slug,
+                topToday: token.topToday,
+                topYesterday: token.topYesterday,
+                volumeToday: token.volumeToday,
+                volumeYesterday: token.volumeYesterday,
+                lastUpdated: token.lastUpdated,
+                historyCount: {
+                    topVolume: topHistory.length,
+                    tradingVolume: tradingHistory.length
+                },
+                firstRecorded: {
+                    topVolume: topHistory.length > 0 ? topHistory[topHistory.length - 1].date : null,
+                    tradingVolume: tradingHistory.length > 0 ? tradingHistory[tradingHistory.length - 1].date : null
+                }
+            };
+        });
+        
+        res.json(stats);
+        
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to get token statistics' });
+    }
+});
+
 // API proxy endpoint
 app.get('/api/volume/:slug', async (req, res) => {
     try {
@@ -374,3 +566,30 @@ app.listen(PORT, () => {
     console.log(`🚀 Server running at http://localhost:${PORT}`);
     console.log(`📊 Token tracker is ready!`);
 });
+
+// Migration function to add history arrays to existing tokens
+function migrateExistingTokens() {
+    const db = loadDatabase();
+    let hasChanges = false;
+    
+    for (const token of db.tokens) {
+        if (!token.topVolumeHistory) {
+            token.topVolumeHistory = [];
+            hasChanges = true;
+            console.log(`Added topVolumeHistory array to ${token.name}`);
+        }
+        if (!token.tradingVolumeHistory) {
+            token.tradingVolumeHistory = [];
+            hasChanges = true;
+            console.log(`Added tradingVolumeHistory array to ${token.name}`);
+        }
+    }
+    
+    if (hasChanges) {
+        saveDatabase(db);
+        console.log('✅ Migration completed: Added history arrays to existing tokens');
+    }
+}
+
+// Run migration on server startup
+migrateExistingTokens();

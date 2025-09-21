@@ -324,6 +324,119 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: rgba(255, 255, 255, 0.98);
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .modal-title {
+            color: #4a5568;
+            font-size: 1.8rem;
+            margin: 0;
+        }
+
+        .close {
+            color: #718096;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #e53e3e;
+        }
+
+        .history-section {
+            margin-bottom: 30px;
+        }
+
+        .history-title {
+            color: #667eea;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .history-table th,
+        .history-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+
+        .history-table th {
+            background: linear-gradient(135deg, #f7fafc, #edf2f7);
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .history-table tbody tr:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .history-type {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .history-type.manual_entry { background: #e6fffa; color: #38b2ac; }
+        .history-type.manual_update { background: #fef5e7; color: #d69e2e; }
+        .history-type.api_fetch { background: #e6f7ff; color: #3182ce; }
+        .history-type.daily_fetch { background: #f0fff4; color: #38a169; }
+        .history-type.daily_shift { background: #faf5ff; color: #805ad5; }
+        .history-type.daily_snapshot { background: #fff5f5; color: #e53e3e; }
+
+        .no-history {
+            text-align: center;
+            color: #718096;
+            font-style: italic;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
@@ -418,6 +531,19 @@
         </div>
     </div>
 
+    <!-- History Modal -->
+    <div id="historyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Token History</h2>
+                <span class="close" onclick="closeHistoryModal()">&times;</span>
+            </div>
+            <div id="historyContent">
+                Loading history...
+            </div>
+        </div>
+    </div>
+
     <script>
         let tokens = [];
         let isAdminUser = false;
@@ -425,8 +551,11 @@
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
-            loadTokensFromServer();
-            updateUI();
+            // Wait for all elements to be loaded
+            setTimeout(() => {
+                loadTokensFromServer();
+                updateUI();
+            }, 100);
             
             // Auto-refresh every 30 seconds
             setInterval(loadTokensFromServer, 30000);
@@ -465,8 +594,14 @@
                 if (result.isAdmin) {
                     isAdminUser = true;
                     adminPassword = password;
-                    updateUI();
                     document.getElementById('adminPassword').value = '';
+                    
+                    // Ensure UI updates properly
+                    setTimeout(() => {
+                        updateUI();
+                        renderTokensTable(); // Re-render table to show admin buttons
+                    }, 50);
+                    
                     alert('✅ Admin login successful!');
                 } else {
                     alert('❌ Invalid admin password');
@@ -494,6 +629,13 @@
             const exportButton = document.getElementById('adminExportButton');
             const triggerButton = document.getElementById('adminTriggerButton');
 
+            // Check if all elements exist before proceeding
+            if (!badge || !info || !loginForm || !adminActions || !addTokenSection) {
+                console.warn('Some UI elements not found, retrying updateUI in 100ms...');
+                setTimeout(updateUI, 100);
+                return;
+            }
+
             if (isAdminUser) {
                 badge.className = 'admin-badge admin';
                 badge.innerHTML = '👑 Admin';
@@ -501,9 +643,10 @@
                 loginForm.classList.add('hidden');
                 adminActions.classList.remove('hidden');
                 addTokenSection.innerHTML = generateAddTokenForm();
-                refreshButton.classList.remove('hidden');
-                exportButton.classList.remove('hidden');
-                triggerButton.classList.remove('hidden');
+                
+                if (refreshButton) refreshButton.classList.remove('hidden');
+                if (exportButton) exportButton.classList.remove('hidden');
+                if (triggerButton) triggerButton.classList.remove('hidden');
                 loadScheduleInfo();
             } else {
                 badge.className = 'admin-badge viewer';
@@ -512,9 +655,10 @@
                 loginForm.classList.remove('hidden');
                 adminActions.classList.add('hidden');
                 addTokenSection.innerHTML = '<p style="text-align: center; color: #718096; font-style: italic;">Admin login required to add tokens</p>';
-                refreshButton.classList.add('hidden');
-                exportButton.classList.add('hidden');
-                triggerButton.classList.add('hidden');
+                
+                if (refreshButton) refreshButton.classList.add('hidden');
+                if (exportButton) exportButton.classList.add('hidden');
+                if (triggerButton) triggerButton.classList.add('hidden');
             }
         }
 
@@ -630,7 +774,7 @@
                             <th>Trading Volume Yesterday</th>
                             <th>Trading Volume Comparison</th>
                             <th>Last Updated</th>
-                            ${isAdminUser ? '<th>Actions</th>' : ''}
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -660,9 +804,13 @@
                     ${isAdminUser ? `
                     <td class="actions">
                         <button class="btn btn-success" onclick="fetchTokenVolume(${token.id})" style="font-size: 12px; padding: 6px 12px;">🔄</button>
+                        <button class="btn btn-primary" onclick="viewTokenHistory(${token.id})" style="font-size: 12px; padding: 6px 12px;">📈</button>
                         <button class="btn btn-primary" onclick="editToken(${token.id})" style="font-size: 12px; padding: 6px 12px;">✏️</button>
                         <button class="btn btn-danger" onclick="deleteToken(${token.id})" style="font-size: 12px; padding: 6px 12px;">🗑️</button>
-                    </td>` : ''}
+                    </td>` : `
+                    <td class="actions">
+                        <button class="btn btn-primary" onclick="viewTokenHistory(${token.id})" style="font-size: 12px; padding: 6px 12px;">📈 History</button>
+                    </td>`}
                 </tr>
             `;
         }
@@ -967,6 +1115,174 @@
                 }
             }
         }
+
+        // View token history
+        async function viewTokenHistory(tokenId) {
+            const token = tokens.find(t => t.id === tokenId);
+            if (!token) {
+                alert('Token not found');
+                return;
+            }
+
+            const modal = document.getElementById('historyModal');
+            const title = document.getElementById('modalTitle');
+            const content = document.getElementById('historyContent');
+
+            title.textContent = `${token.name} - Historical Data`;
+            content.innerHTML = 'Loading history...';
+            modal.style.display = 'block';
+
+            try {
+                const response = await fetch(`/api/tokens/${tokenId}/history`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch history');
+                }
+
+                const historyData = await response.json();
+                displayTokenHistory(historyData);
+
+            } catch (error) {
+                content.innerHTML = `<p style="color: #e53e3e; text-align: center;">Error loading history: ${error.message}</p>`;
+            }
+        }
+
+        // Display token history in modal
+        function displayTokenHistory(historyData) {
+            const content = document.getElementById('historyContent');
+            
+            if ((!historyData.topVolumeHistory || historyData.topVolumeHistory.length === 0) && 
+                (!historyData.tradingVolumeHistory || historyData.tradingVolumeHistory.length === 0)) {
+                content.innerHTML = `
+                    <div class="no-history">
+                        <p>📊 No historical data available yet</p>
+                        <p>History will be recorded when:</p>
+                        <ul>
+                            <li>Top volumes are manually updated</li>
+                            <li>Trading volumes are fetched from CoinMarketCap</li>
+                            <li>Daily automated updates occur</li>
+                        </ul>
+                    </div>
+                `;
+                return;
+            }
+
+            let historyHTML = '';
+
+            // Top Volume History Section
+            if (historyData.topVolumeHistory && historyData.topVolumeHistory.length > 0) {
+                historyHTML += `
+                    <div class="history-section">
+                        <h3 class="history-title">📊 Top Volume History</h3>
+                        <div class="history-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Value</th>
+                                        <th>Previous Value</th>
+                                        <th>Change</th>
+                                        <th>Type</th>
+                                        <th>Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${historyData.topVolumeHistory.map(entry => `
+                                        <tr>
+                                            <td>${new Date(entry.date).toLocaleDateString()}</td>
+                                            <td>${formatCurrency(entry.value)}</td>
+                                            <td>${entry.previousValue ? formatCurrency(entry.previousValue) : '-'}</td>
+                                            <td>${getHistoryComparison(entry.previousValue, entry.value)}</td>
+                                            <td><span class="history-type ${entry.type}">${formatHistoryType(entry.type)}</span></td>
+                                            <td>${new Date(entry.timestamp).toLocaleTimeString()}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Trading Volume History Section
+            if (historyData.tradingVolumeHistory && historyData.tradingVolumeHistory.length > 0) {
+                historyHTML += `
+                    <div class="history-section">
+                        <h3 class="history-title">📈 Trading Volume History</h3>
+                        <div class="history-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Value</th>
+                                        <th>Previous Value</th>
+                                        <th>Change</th>
+                                        <th>Type</th>
+                                        <th>Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${historyData.tradingVolumeHistory.map(entry => `
+                                        <tr>
+                                            <td>${new Date(entry.date).toLocaleDateString()}</td>
+                                            <td>${formatCurrency(entry.value)}</td>
+                                            <td>${entry.previousValue ? formatCurrency(entry.previousValue) : '-'}</td>
+                                            <td>${getHistoryComparison(entry.previousValue, entry.value)}</td>
+                                            <td><span class="history-type ${entry.type}">${formatHistoryType(entry.type)}</span></td>
+                                            <td>${new Date(entry.timestamp).toLocaleTimeString()}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            content.innerHTML = historyHTML;
+        }
+
+        // Close history modal
+        function closeHistoryModal() {
+            document.getElementById('historyModal').style.display = 'none';
+        }
+
+        // Format history type for display
+        function formatHistoryType(type) {
+            const types = {
+                'manual_entry': 'Manual Entry',
+                'manual_update': 'Manual Update',
+                'manual_correction': 'Manual Correction',
+                'manual_backfill': 'Manual Backfill',
+                'api_fetch': 'API Fetch',
+                'daily_fetch': 'Daily Fetch',
+                'daily_shift': 'Daily Shift',
+                'daily_snapshot': 'Daily Snapshot',
+                'shifted_from_today': 'Shifted from Today'
+            };
+            return types[type] || type;
+        }
+
+        // Get comparison for history entries
+        function getHistoryComparison(oldValue, newValue) {
+            if (!oldValue || oldValue === null) return '-';
+            
+            const difference = newValue - oldValue;
+            const percentage = ((difference / oldValue) * 100).toFixed(2);
+            const arrow = difference > 0 ? '📈' : difference < 0 ? '📉' : '➡️';
+            const color = difference > 0 ? '#38a169' : difference < 0 ? '#e53e3e' : '#718096';
+            
+            return `<span style="color: ${color};">
+                ${arrow} ${formatCurrency(Math.abs(difference))} (${Math.abs(percentage)}%)
+            </span>`;
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const historyModal = document.getElementById('historyModal');
+            if (event.target === historyModal) {
+                historyModal.style.display = 'none';
+            }
+        };
     </script>
 </body>
 </html>
