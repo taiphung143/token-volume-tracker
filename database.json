@@ -4,11 +4,11 @@
       "id": 1758350295068,
       "name": "HEMI",
       "slug": "hemi",
-      "topToday": 1394263,
-      "topYesterday": 1394262,
-      "volumeToday": 869327597.249244,
-      "volumeYesterday": 860104280.9931387,
-      "lastUpdated": "2025-09-21T18:57:14.576Z",
+      "topToday": 2031671,
+      "topYesterday": 1394263,
+      "volumeToday": 1346178827.0477605,
+      "volumeYesterday": 964826493.7048821,
+      "lastUpdated": "2025-09-22T08:20:11.459Z",
       "topVolumeHistory": [
         {
           "date": "2025-09-21",
@@ -83,6 +83,13 @@
           "value": 1394263,
           "previousValue": 1394262,
           "timestamp": "2025-09-21T18:58:25.145Z",
+          "type": "manual_shift_update"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 2031671,
+          "previousValue": 1394263,
+          "timestamp": "2025-09-22T04:23:10.514Z",
           "type": "manual_shift_update"
         }
       ],
@@ -285,22 +292,85 @@
           "previousValue": 860104280.9931387,
           "timestamp": "2025-09-21T18:57:14.576Z",
           "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-20",
+          "value": 869327597.249244,
+          "previousValue": 860104280.9931387,
+          "timestamp": "2025-09-21T22:50:35.809Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 956491500.4461387,
+          "previousValue": 869327597.249244,
+          "timestamp": "2025-09-21T22:50:35.809Z",
+          "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 964826493.7048821,
+          "previousValue": 956491500.4461387,
+          "timestamp": "2025-09-21T23:09:11.116Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 964826493.7048821,
+          "previousValue": 869327597.249244,
+          "timestamp": "2025-09-22T03:47:19.591Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 1071263247.7804828,
+          "previousValue": 964826493.7048821,
+          "timestamp": "2025-09-22T03:47:19.591Z",
+          "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 1084638576.5155065,
+          "previousValue": 1071263247.7804828,
+          "timestamp": "2025-09-22T04:24:55.708Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 1193826761.2690132,
+          "previousValue": 1084638576.5155065,
+          "timestamp": "2025-09-22T06:33:10.122Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 1328170454.9091914,
+          "previousValue": 1193826761.2690132,
+          "timestamp": "2025-09-22T08:05:53.697Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 1346178827.0477605,
+          "previousValue": 1328170454.9091914,
+          "timestamp": "2025-09-22T08:20:11.459Z",
+          "type": "api_fetch"
         }
       ],
       "status": "ongoing",
       "amount": 1900,
-      "currentPrice": 0.10302665,
-      "totalPrize": 195.750635
+      "currentPrice": 0.09447281,
+      "totalPrize": 179.49833900000002
     },
     {
       "id": 1758350562749,
       "name": "TRADOOR",
       "slug": "tradoor",
-      "topToday": 2744903,
-      "topYesterday": 2744902,
-      "volumeToday": 623184162.7630556,
-      "volumeYesterday": 619235190.5626247,
-      "lastUpdated": "2025-09-21T18:57:14.576Z",
+      "topToday": 3282541,
+      "topYesterday": 2744903,
+      "volumeToday": 767804654.668077,
+      "volumeYesterday": 669581684.0470101,
+      "lastUpdated": "2025-09-22T08:20:13.591Z",
       "topVolumeHistory": [
         {
           "date": "2025-09-21",
@@ -340,6 +410,13 @@
           "value": 2744903,
           "previousValue": 2744902,
           "timestamp": "2025-09-21T17:32:45.061Z",
+          "type": "manual_shift_update"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 3282541,
+          "previousValue": 2744903,
+          "timestamp": "2025-09-22T04:22:48.819Z",
           "type": "manual_shift_update"
         }
       ],
@@ -536,22 +613,85 @@
           "previousValue": 619235190.5626247,
           "timestamp": "2025-09-21T18:57:14.576Z",
           "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-20",
+          "value": 623184162.7630556,
+          "previousValue": 619235190.5626247,
+          "timestamp": "2025-09-21T22:50:35.809Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 668248202.3414271,
+          "previousValue": 623184162.7630556,
+          "timestamp": "2025-09-21T22:50:35.809Z",
+          "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 669581684.0470101,
+          "previousValue": 668248202.3414271,
+          "timestamp": "2025-09-21T23:09:13.390Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 669581684.0470101,
+          "previousValue": 623184162.7630556,
+          "timestamp": "2025-09-22T03:47:19.591Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 669192474.8303027,
+          "previousValue": 669581684.0470101,
+          "timestamp": "2025-09-22T03:47:19.591Z",
+          "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 674043387.619395,
+          "previousValue": 669192474.8303027,
+          "timestamp": "2025-09-22T04:24:57.901Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 719198822.884903,
+          "previousValue": 674043387.619395,
+          "timestamp": "2025-09-22T06:33:12.320Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 752145854.4594678,
+          "previousValue": 719198822.884903,
+          "timestamp": "2025-09-22T08:05:56.300Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 767804654.668077,
+          "previousValue": 752145854.4594678,
+          "timestamp": "2025-09-22T08:20:13.591Z",
+          "type": "api_fetch"
         }
       ],
       "status": "ongoing",
       "amount": 40,
-      "currentPrice": 3.62206344,
-      "totalPrize": 144.88253759999998
+      "currentPrice": 3.26996237,
+      "totalPrize": 130.79849480000001
     },
     {
       "id": 1758362944177,
       "name": "PTB",
       "slug": "portaltobitcoin",
-      "topToday": 581250,
-      "topYesterday": 281526,
-      "volumeToday": 696400434.02689,
-      "volumeYesterday": 692865374.0388054,
-      "lastUpdated": "2025-09-21T18:57:14.576Z",
+      "topToday": 1018897,
+      "topYesterday": 581250,
+      "volumeToday": 776236998.5863152,
+      "volumeYesterday": 712534533.0820644,
+      "lastUpdated": "2025-09-22T08:20:15.946Z",
       "topVolumeHistory": [
         {
           "date": "2025-09-21",
@@ -585,6 +725,13 @@
           "value": 581250,
           "timestamp": "2025-09-21T13:49:14.272Z",
           "type": "daily_snapshot"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 1018897,
+          "previousValue": 581250,
+          "timestamp": "2025-09-22T04:23:00.926Z",
+          "type": "manual_shift_update"
         }
       ],
       "tradingVolumeHistory": [
@@ -780,22 +927,85 @@
           "previousValue": 692865374.0388054,
           "timestamp": "2025-09-21T18:57:14.576Z",
           "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-20",
+          "value": 696400434.02689,
+          "previousValue": 692865374.0388054,
+          "timestamp": "2025-09-21T22:50:35.809Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 711549576.722965,
+          "previousValue": 696400434.02689,
+          "timestamp": "2025-09-21T22:50:35.809Z",
+          "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 712534533.0820644,
+          "previousValue": 711549576.722965,
+          "timestamp": "2025-09-21T23:09:15.661Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 712534533.0820644,
+          "previousValue": 696400434.02689,
+          "timestamp": "2025-09-22T03:47:19.591Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 705848858.3086756,
+          "previousValue": 712534533.0820644,
+          "timestamp": "2025-09-22T03:47:19.591Z",
+          "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 697583208.4629233,
+          "previousValue": 705848858.3086756,
+          "timestamp": "2025-09-22T04:25:00.092Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 701333559.0864967,
+          "previousValue": 697583208.4629233,
+          "timestamp": "2025-09-22T06:33:14.531Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 755312989.9998006,
+          "previousValue": 701333559.0864967,
+          "timestamp": "2025-09-22T08:05:59.238Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 776236998.5863152,
+          "previousValue": 755312989.9998006,
+          "timestamp": "2025-09-22T08:20:15.946Z",
+          "type": "api_fetch"
         }
       ],
       "status": "ongoing",
       "amount": 1300,
-      "currentPrice": 0.05831804,
-      "totalPrize": 75.813452
+      "currentPrice": 0.05850273,
+      "totalPrize": 76.053549
     },
     {
       "id": 1758363199720,
       "name": "PRAI",
       "slug": "privasea-ai",
-      "topToday": 19183,
-      "topYesterday": 2765,
-      "volumeToday": 236441730.39166865,
-      "volumeYesterday": 233437781.71081704,
-      "lastUpdated": "2025-09-21T18:57:14.576Z",
+      "topToday": 153086,
+      "topYesterday": 19183,
+      "volumeToday": 362002666.65967983,
+      "volumeYesterday": 262100050.3028691,
+      "lastUpdated": "2025-09-22T08:20:18.235Z",
       "topVolumeHistory": [
         {
           "date": "2025-09-21",
@@ -829,6 +1039,13 @@
           "value": 19183,
           "timestamp": "2025-09-21T13:49:14.272Z",
           "type": "daily_snapshot"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 153086,
+          "previousValue": 19183,
+          "timestamp": "2025-09-22T04:23:19.652Z",
+          "type": "manual_shift_update"
         }
       ],
       "tradingVolumeHistory": [
@@ -1024,12 +1241,75 @@
           "previousValue": 233437781.71081704,
           "timestamp": "2025-09-21T18:57:14.576Z",
           "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-20",
+          "value": 236441730.39166865,
+          "previousValue": 233437781.71081704,
+          "timestamp": "2025-09-21T22:50:35.809Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 258856641.2111893,
+          "previousValue": 236441730.39166865,
+          "timestamp": "2025-09-21T22:50:35.809Z",
+          "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 262100050.3028691,
+          "previousValue": 258856641.2111893,
+          "timestamp": "2025-09-21T23:09:17.934Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 262100050.3028691,
+          "previousValue": 236441730.39166865,
+          "timestamp": "2025-09-22T03:47:19.591Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 285165494.35234225,
+          "previousValue": 262100050.3028691,
+          "timestamp": "2025-09-22T03:47:19.591Z",
+          "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 288762188.1800674,
+          "previousValue": 285165494.35234225,
+          "timestamp": "2025-09-22T04:25:02.311Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 309315086.57589483,
+          "previousValue": 288762188.1800674,
+          "timestamp": "2025-09-22T06:33:16.742Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 352515059.44603515,
+          "previousValue": 309315086.57589483,
+          "timestamp": "2025-09-22T08:06:01.621Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 362002666.65967983,
+          "previousValue": 352515059.44603515,
+          "timestamp": "2025-09-22T08:20:18.235Z",
+          "type": "api_fetch"
         }
       ],
       "status": "ongoing",
       "amount": 3846,
-      "currentPrice": 0.04052309,
-      "totalPrize": 155.85180413999998
+      "currentPrice": 0.03585429,
+      "totalPrize": 137.89559934
     },
     {
       "id": 1758363239984,
@@ -1114,9 +1394,9 @@
       "slug": "sidekick-fans",
       "topToday": 1,
       "topYesterday": 1,
-      "volumeToday": 26127150.17348446,
-      "volumeYesterday": 25869027.15717008,
-      "lastUpdated": "2025-09-21T18:57:14.576Z",
+      "volumeToday": 41421985.5840734,
+      "volumeYesterday": 28098196.76094035,
+      "lastUpdated": "2025-09-22T08:20:20.558Z",
       "topVolumeHistory": [
         {
           "date": "2025-09-21",
@@ -1324,12 +1604,75 @@
           "previousValue": 25869027.15717008,
           "timestamp": "2025-09-21T18:57:14.576Z",
           "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-20",
+          "value": 26127150.17348446,
+          "previousValue": 25869027.15717008,
+          "timestamp": "2025-09-21T22:50:35.809Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 27968076.17590229,
+          "previousValue": 26127150.17348446,
+          "timestamp": "2025-09-21T22:50:35.809Z",
+          "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 28098196.76094035,
+          "previousValue": 27968076.17590229,
+          "timestamp": "2025-09-21T23:09:20.248Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 28098196.76094035,
+          "previousValue": 26127150.17348446,
+          "timestamp": "2025-09-22T03:47:19.591Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 32885842.3586344,
+          "previousValue": 28098196.76094035,
+          "timestamp": "2025-09-22T03:47:19.591Z",
+          "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 33088705.41594484,
+          "previousValue": 32885842.3586344,
+          "timestamp": "2025-09-22T04:25:04.911Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 34655051.061876,
+          "previousValue": 33088705.41594484,
+          "timestamp": "2025-09-22T06:33:18.975Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 39827710.68347294,
+          "previousValue": 34655051.061876,
+          "timestamp": "2025-09-22T08:06:04.058Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 41421985.5840734,
+          "previousValue": 39827710.68347294,
+          "timestamp": "2025-09-22T08:20:20.558Z",
+          "type": "api_fetch"
         }
       ],
       "status": "ongoing",
       "amount": 520,
-      "currentPrice": 0.17863011,
-      "totalPrize": 92.8876572
+      "currentPrice": 0.16694914,
+      "totalPrize": 86.8135528
     },
     {
       "id": 1758476719978,
@@ -1337,12 +1680,12 @@
       "slug": "zeus-network",
       "topToday": 2607,
       "topYesterday": 1,
-      "volumeToday": 215240828.81299984,
-      "volumeYesterday": 214826514.13987568,
+      "volumeToday": 242843498.08692104,
+      "volumeYesterday": 218011857.71110368,
       "amount": 520,
-      "currentPrice": 0.13457113,
-      "totalPrize": 69.9769876,
-      "lastUpdated": "2025-09-21T18:57:14.576Z",
+      "currentPrice": 0.12845469,
+      "totalPrize": 66.7964388,
+      "lastUpdated": "2025-09-22T08:20:22.867Z",
       "status": "ongoing",
       "topVolumeHistory": [
         {
@@ -1408,6 +1751,69 @@
           "previousValue": 214826514.13987568,
           "timestamp": "2025-09-21T18:57:14.576Z",
           "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-20",
+          "value": 215240828.81299984,
+          "previousValue": 214826514.13987568,
+          "timestamp": "2025-09-21T22:50:35.809Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 217889543.53647798,
+          "previousValue": 215240828.81299984,
+          "timestamp": "2025-09-21T22:50:35.809Z",
+          "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 218011857.71110368,
+          "previousValue": 217889543.53647798,
+          "timestamp": "2025-09-21T23:09:22.344Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 218011857.71110368,
+          "previousValue": 215240828.81299984,
+          "timestamp": "2025-09-22T03:47:19.591Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 226221751.31152058,
+          "previousValue": 218011857.71110368,
+          "timestamp": "2025-09-22T03:47:19.591Z",
+          "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 226803783.42197526,
+          "previousValue": 226221751.31152058,
+          "timestamp": "2025-09-22T04:25:07.160Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 240207685.02948663,
+          "previousValue": 226803783.42197526,
+          "timestamp": "2025-09-22T06:33:21.237Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 241214713.05732554,
+          "previousValue": 240207685.02948663,
+          "timestamp": "2025-09-22T08:06:06.426Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 242843498.08692104,
+          "previousValue": 241214713.05732554,
+          "timestamp": "2025-09-22T08:20:22.867Z",
+          "type": "api_fetch"
         }
       ]
     },
@@ -1417,12 +1823,12 @@
       "slug": "aleo",
       "topToday": 7214,
       "topYesterday": 1,
-      "volumeToday": 114118978.2096626,
-      "volumeYesterday": 113798630.01190756,
+      "volumeToday": 98074900.0458072,
+      "volumeYesterday": 117222898.5922484,
       "amount": 330,
-      "currentPrice": 0.22434286,
-      "totalPrize": 74.0331438,
-      "lastUpdated": "2025-09-21T18:57:14.576Z",
+      "currentPrice": 0.21021527,
+      "totalPrize": 69.3710391,
+      "lastUpdated": "2025-09-22T08:20:25.255Z",
       "status": "ongoing",
       "topVolumeHistory": [
         {
@@ -1481,6 +1887,69 @@
           "previousValue": 113798630.01190756,
           "timestamp": "2025-09-21T18:57:14.576Z",
           "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-20",
+          "value": 114118978.2096626,
+          "previousValue": 113798630.01190756,
+          "timestamp": "2025-09-21T22:50:35.809Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 116492305.84057273,
+          "previousValue": 114118978.2096626,
+          "timestamp": "2025-09-21T22:50:35.809Z",
+          "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 117222898.5922484,
+          "previousValue": 116492305.84057273,
+          "timestamp": "2025-09-21T23:09:24.813Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 117222898.5922484,
+          "previousValue": 114118978.2096626,
+          "timestamp": "2025-09-22T03:47:19.591Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 111165627.3764272,
+          "previousValue": 117222898.5922484,
+          "timestamp": "2025-09-22T03:47:19.591Z",
+          "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 109637974.70278004,
+          "previousValue": 111165627.3764272,
+          "timestamp": "2025-09-22T04:25:09.391Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 105148004.2747279,
+          "previousValue": 109637974.70278004,
+          "timestamp": "2025-09-22T06:33:23.529Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 98076189.26195207,
+          "previousValue": 105148004.2747279,
+          "timestamp": "2025-09-22T08:06:08.802Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 98074900.0458072,
+          "previousValue": 98076189.26195207,
+          "timestamp": "2025-09-22T08:20:25.255Z",
+          "type": "api_fetch"
         }
       ]
     },
@@ -1490,12 +1959,12 @@
       "slug": "solidus-ai-tech",
       "topToday": 1,
       "topYesterday": 1,
-      "volumeToday": 189508.22832979,
-      "volumeYesterday": 188108.18074746,
+      "volumeToday": 147893.86972401,
+      "volumeYesterday": 178916.05065131,
       "amount": 2300,
-      "currentPrice": 0.03378618,
-      "totalPrize": 77.708214,
-      "lastUpdated": "2025-09-21T18:57:14.576Z",
+      "currentPrice": 0.03090576,
+      "totalPrize": 71.083248,
+      "lastUpdated": "2025-09-22T08:20:27.576Z",
       "status": "ongoing",
       "topVolumeHistory": [
         {
@@ -1554,6 +2023,69 @@
           "previousValue": 188108.18074746,
           "timestamp": "2025-09-21T18:57:14.576Z",
           "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-20",
+          "value": 189508.22832979,
+          "previousValue": 188108.18074746,
+          "timestamp": "2025-09-21T22:50:35.809Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 180265.67637156,
+          "previousValue": 189508.22832979,
+          "timestamp": "2025-09-21T22:50:35.809Z",
+          "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 178916.05065131,
+          "previousValue": 180265.67637156,
+          "timestamp": "2025-09-21T23:09:27.142Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 178916.05065131,
+          "previousValue": 189508.22832979,
+          "timestamp": "2025-09-22T03:47:19.591Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 179810.9267878,
+          "previousValue": 178916.05065131,
+          "timestamp": "2025-09-22T03:47:19.591Z",
+          "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 169589.84743078,
+          "previousValue": 179810.9267878,
+          "timestamp": "2025-09-22T04:25:11.591Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 163998.07502974,
+          "previousValue": 169589.84743078,
+          "timestamp": "2025-09-22T06:33:25.751Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 156737.79416591,
+          "previousValue": 163998.07502974,
+          "timestamp": "2025-09-22T08:06:11.168Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 147893.86972401,
+          "previousValue": 156737.79416591,
+          "timestamp": "2025-09-22T08:20:27.576Z",
+          "type": "api_fetch"
         }
       ]
     },
@@ -1563,12 +2095,12 @@
       "slug": "froggie",
       "topToday": 1,
       "topYesterday": 1,
-      "volumeToday": 5810131.69320218,
-      "volumeYesterday": 5804408.50615915,
+      "volumeToday": 15498878.15051127,
+      "volumeYesterday": 5485182.05636062,
       "amount": 1400,
-      "currentPrice": 0.04958901,
-      "totalPrize": 69.424614,
-      "lastUpdated": "2025-09-21T18:57:14.576Z",
+      "currentPrice": 0.0487756,
+      "totalPrize": 68.28584000000001,
+      "lastUpdated": "2025-09-22T08:20:29.980Z",
       "status": "ongoing",
       "topVolumeHistory": [
         {
@@ -1627,6 +2159,69 @@
           "previousValue": 5804408.50615915,
           "timestamp": "2025-09-21T18:57:14.576Z",
           "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-20",
+          "value": 5810131.69320218,
+          "previousValue": 5804408.50615915,
+          "timestamp": "2025-09-21T22:50:35.809Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 5493066.17576557,
+          "previousValue": 5810131.69320218,
+          "timestamp": "2025-09-21T22:50:35.809Z",
+          "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 5485182.05636062,
+          "previousValue": 5493066.17576557,
+          "timestamp": "2025-09-21T23:09:29.474Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 5485182.05636062,
+          "previousValue": 5810131.69320218,
+          "timestamp": "2025-09-22T03:47:19.591Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 11846215.23085104,
+          "previousValue": 5485182.05636062,
+          "timestamp": "2025-09-22T03:47:19.591Z",
+          "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 13025585.5274479,
+          "previousValue": 11846215.23085104,
+          "timestamp": "2025-09-22T04:25:13.786Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 15409664.57045305,
+          "previousValue": 13025585.5274479,
+          "timestamp": "2025-09-22T06:33:27.943Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 15421663.77202856,
+          "previousValue": 15409664.57045305,
+          "timestamp": "2025-09-22T08:06:13.544Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 15498878.15051127,
+          "previousValue": 15421663.77202856,
+          "timestamp": "2025-09-22T08:20:29.980Z",
+          "type": "api_fetch"
         }
       ]
     },
@@ -1636,12 +2231,12 @@
       "slug": "numine",
       "topToday": 1,
       "topYesterday": 1,
-      "volumeToday": 4994401.26540448,
-      "volumeYesterday": 4961132.24324887,
+      "volumeToday": 10944945.48097446,
+      "volumeYesterday": 5441339.5959993,
       "amount": 690,
-      "currentPrice": 0.1254016,
-      "totalPrize": 86.52710400000001,
-      "lastUpdated": "2025-09-21T18:57:14.576Z",
+      "currentPrice": 0.10407674,
+      "totalPrize": 71.8129506,
+      "lastUpdated": "2025-09-22T08:20:32.292Z",
       "status": "ongoing",
       "topVolumeHistory": [
         {
@@ -1700,9 +2295,72 @@
           "previousValue": 4961132.24324887,
           "timestamp": "2025-09-21T18:57:14.576Z",
           "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-20",
+          "value": 4994401.26540448,
+          "previousValue": 4961132.24324887,
+          "timestamp": "2025-09-21T22:50:35.809Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 5410039.28270748,
+          "previousValue": 4994401.26540448,
+          "timestamp": "2025-09-21T22:50:35.809Z",
+          "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 5441339.5959993,
+          "previousValue": 5410039.28270748,
+          "timestamp": "2025-09-21T23:09:31.797Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-21",
+          "value": 5441339.5959993,
+          "previousValue": 4994401.26540448,
+          "timestamp": "2025-09-22T03:47:19.591Z",
+          "type": "daily_shift"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 8341006.88732545,
+          "previousValue": 5441339.5959993,
+          "timestamp": "2025-09-22T03:47:19.591Z",
+          "type": "daily_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 8611532.61823597,
+          "previousValue": 8341006.88732545,
+          "timestamp": "2025-09-22T04:25:16.006Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 10136529.83315143,
+          "previousValue": 8611532.61823597,
+          "timestamp": "2025-09-22T06:33:30.169Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 11005167.52953919,
+          "previousValue": 10136529.83315143,
+          "timestamp": "2025-09-22T08:06:15.921Z",
+          "type": "api_fetch"
+        },
+        {
+          "date": "2025-09-22",
+          "value": 10944945.48097446,
+          "previousValue": 11005167.52953919,
+          "timestamp": "2025-09-22T08:20:32.292Z",
+          "type": "api_fetch"
         }
       ]
     }
   ],
-  "lastUpdated": "2025-09-21T18:58:25.145Z"
+  "lastUpdated": "2025-09-22T08:20:32.292Z"
 }
