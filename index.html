@@ -1185,6 +1185,76 @@
             }
         }
 
+        // Archive token (move to finished/archived status)
+        async function archiveToken(tokenId) {
+            if (!isAdminUser) {
+                alert('Admin access required');
+                return;
+            }
+
+            if (!confirm('Are you sure you want to archive this token? It will be moved to the "Finished" section.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/tokens/${tokenId}/archive`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        archived: true,
+                        adminPassword 
+                    })
+                });
+
+                if (response.ok) {
+                    await loadTokensFromServer();
+                    alert('📦 Token archived successfully!');
+                } else {
+                    const result = await response.json();
+                    alert('❌ Error: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error archiving token: ' + error.message);
+            }
+        }
+
+        // Unarchive token (move back to ongoing status)
+        async function unarchiveToken(tokenId) {
+            if (!isAdminUser) {
+                alert('Admin access required');
+                return;
+            }
+
+            if (!confirm('Are you sure you want to restore this token? It will be moved back to the "Ongoing" section.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/tokens/${tokenId}/archive`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        archived: false,
+                        adminPassword 
+                    })
+                });
+
+                if (response.ok) {
+                    await loadTokensFromServer();
+                    alert('♻️ Token restored successfully!');
+                } else {
+                    const result = await response.json();
+                    alert('❌ Error: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error restoring token: ' + error.message);
+            }
+        }
+
         // Export token report
         function exportTokenReport() {
             if (!isAdminUser) {
@@ -1525,6 +1595,10 @@
             `;
             
             content.innerHTML = historyHTML;
+            
+            // Initialize filter to show all entries
+            document.getElementById('dateFilter').value = 'all';
+            updateHistoryFilter();
         }
 
         // Generate a single history row
@@ -1553,13 +1627,139 @@
             document.getElementById('historyModal').style.display = 'none';
         }
 
-        // Initialize the app
-        document.addEventListener('DOMContentLoaded', function() {
-            loadTokensFromServer();
-            loadScheduleInfo(); // Load schedule information on page load
-            updateUI(); // Initialize UI state
-        });
+        // Update history display based on filter selection
+        function updateHistoryFilter() {
+            const filterType = document.getElementById('dateFilter').value;
+            const specificDateRange = document.getElementById('specificDateRange');
+            const customDateRange = document.getElementById('customDateRange');
+            
+            // Show/hide date range inputs based on filter type
+            if (filterType === 'specific') {
+                specificDateRange.classList.remove('hidden');
+                customDateRange.classList.add('hidden');
+            } else if (filterType === 'custom') {
+                specificDateRange.classList.add('hidden');
+                customDateRange.classList.remove('hidden');
+            } else {
+                specificDateRange.classList.add('hidden');
+                customDateRange.classList.add('hidden');
+            }
+            
+            // Apply the filter to currently displayed history
+            filterDisplayedHistory();
+        }
 
+        // Filter the displayed history based on current filter settings
+        function filterDisplayedHistory() {
+            const filterType = document.getElementById('dateFilter').value;
+            const specificDate = document.getElementById('specificDate').value;
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+            
+            // Get all history rows
+            const historyTables = document.querySelectorAll('.history-table tbody');
+            
+            historyTables.forEach(tbody => {
+                const rows = tbody.querySelectorAll('tr');
+                
+                rows.forEach(row => {
+                    const dateCell = row.querySelector('td:first-child'); // First cell contains the date
+                    if (!dateCell) return;
+                    
+                    const rowDateText = dateCell.textContent.trim();
+                    const rowDate = new Date(rowDateText);
+                    const today = new Date();
+                    const yesterday = new Date();
+                    yesterday.setDate(today.getDate() - 1);
+                    
+                    let showRow = true;
+                    
+                    switch (filterType) {
+                        case 'all':
+                            showRow = true;
+                            break;
+                            
+                        case 'today':
+                            showRow = rowDate.toDateString() === today.toDateString();
+                            break;
+                            
+                        case 'yesterday':
+                            showRow = rowDate.toDateString() === yesterday.toDateString();
+                            break;
+                            
+                        case 'last7days':
+                            const sevenDaysAgo = new Date();
+                            sevenDaysAgo.setDate(today.getDate() - 7);
+                            showRow = rowDate >= sevenDaysAgo && rowDate <= today;
+                            break;
+                            
+                        case 'last30days':
+                            const thirtyDaysAgo = new Date();
+                            thirtyDaysAgo.setDate(today.getDate() - 30);
+                            showRow = rowDate >= thirtyDaysAgo && rowDate <= today;
+                            break;
+                            
+                        case 'specific':
+                            if (specificDate) {
+                                const targetDate = new Date(specificDate);
+                                showRow = rowDate.toDateString() === targetDate.toDateString();
+                            }
+                            break;
+                            
+                        case 'custom':
+                            if (dateFrom && dateTo) {
+                                const fromDate = new Date(dateFrom);
+                                const toDate = new Date(dateTo);
+                                toDate.setHours(23, 59, 59, 999); // Include entire end date
+                                showRow = rowDate >= fromDate && rowDate <= toDate;
+                            } else if (dateFrom) {
+                                const fromDate = new Date(dateFrom);
+                                showRow = rowDate >= fromDate;
+                            } else if (dateTo) {
+                                const toDate = new Date(dateTo);
+                                toDate.setHours(23, 59, 59, 999);
+                                showRow = rowDate <= toDate;
+                            }
+                            break;
+                    }
+                    
+                    // Show or hide the row
+                    if (showRow) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+            
+            // Update visible row count or show "no results" message
+            updateFilterResultsMessage();
+        }
+
+        // Update the results message based on visible rows
+        function updateFilterResultsMessage() {
+            const historyContent = document.getElementById('historyContent');
+            const visibleRows = historyContent.querySelectorAll('.history-table tbody tr:not([style*="display: none"])');
+            
+            // Remove any existing result message
+            const existingMessage = historyContent.querySelector('.filter-results-message');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+            
+            // Add message if no results found
+            if (visibleRows.length === 0) {
+                const noResultsMessage = document.createElement('div');
+                noResultsMessage.className = 'filter-results-message';
+                noResultsMessage.style.textAlign = 'center';
+                noResultsMessage.style.padding = '20px';
+                noResultsMessage.style.color = '#666';
+                noResultsMessage.innerHTML = '📅 No history entries found for the selected date range.';
+                historyContent.appendChild(noResultsMessage);
+            }
+        }
+
+        // ...existing code...
     </script>
 </body>
 </html>
