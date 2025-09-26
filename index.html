@@ -677,8 +677,62 @@
         let adminPassword = '';
         let currentHistoryData = null; // Store current history data for filtering
 
+        // Format UTC timestamp to UTC+7 timezone
+        function formatToUTC7(utcTimestamp) {
+            // Debug removed - function is working correctly
+            
+            const utcDate = new Date(utcTimestamp);
+            
+            // Get UTC components
+            const utcYear = utcDate.getUTCFullYear();
+            const utcMonth = utcDate.getUTCMonth();
+            const utcDay = utcDate.getUTCDate();
+            const utcHours = utcDate.getUTCHours();
+            const utcMinutes = utcDate.getUTCMinutes();
+            const utcSeconds = utcDate.getUTCSeconds();
+            
+            // Add 7 hours to UTC hours
+            let utc7Hours = utcHours + 7;
+            let utc7Day = utcDay;
+            let utc7Month = utcMonth;
+            let utc7Year = utcYear;
+            
+            // Handle hour overflow (23 + 7 = 30, which means next day)
+            if (utc7Hours >= 24) {
+                utc7Hours -= 24;
+                utc7Day += 1;
+                
+                // Handle day overflow (need to check month/year boundaries)
+                const daysInMonth = new Date(utc7Year, utc7Month + 1, 0).getDate();
+                if (utc7Day > daysInMonth) {
+                    utc7Day = 1;
+                    utc7Month += 1;
+                    if (utc7Month > 11) {
+                        utc7Month = 0;
+                        utc7Year += 1;
+                    }
+                }
+            }
+            
+            // Format components
+            const month = String(utc7Month + 1).padStart(2, '0');
+            const day = String(utc7Day).padStart(2, '0');
+            const minutes = String(utcMinutes).padStart(2, '0');
+            const seconds = String(utcSeconds).padStart(2, '0');
+            
+            // Convert to 12-hour format
+            const ampm = utc7Hours >= 12 ? 'PM' : 'AM';
+            let displayHours = utc7Hours % 12;
+            displayHours = displayHours ? displayHours : 12; // the hour '0' should be '12'
+            const hoursStr = String(displayHours).padStart(2, '0');
+            
+            return `${month}/${day}/${utc7Year}, ${hoursStr}:${minutes}:${seconds} ${ampm} (UTC+7)`;
+        }
+
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
+            // Test removed - function is now working correctly
+            
             // Wait for all elements to be loaded
             setTimeout(() => {
                 loadTokensFromServer();
@@ -942,7 +996,7 @@
         function generateTokenRow(token, sectionType) {
             const topComparison = getComparison(token.topYesterday, token.topToday);
             const volumeComparison = getComparison(token.volumeYesterday, token.volumeToday);
-            const lastUpdated = token.lastUpdated ? new Date(token.lastUpdated).toLocaleString() : 'Never';
+            const lastUpdated = token.lastUpdated ? formatToUTC7(token.lastUpdated) : 'Never';
             const archivedDate = token.archivedAt ? new Date(token.archivedAt).toLocaleDateString() : '';
             
             // Calculate and format total prize
@@ -1031,7 +1085,8 @@
             try {
                 renderTokensTable(); // Show loading
                 
-                const apiUrl = `/api/volume/${token.slug}`;
+                // Use token name instead of slug for the new Binance Alpha API
+                const apiUrl = `/api/volume/${token.name}`;
                 const response = await fetch(apiUrl);
                 
                 if (!response.ok) {
@@ -1040,33 +1095,27 @@
                 
                 const data = await response.json();
                 
-                if (data.data && data.data.marketPairs && data.data.marketPairs.length > 0) {
-                    const rank1Cex = data.data.marketPairs.find(pair => 
-                        pair.rank === 1 && pair.type === 'cex'
-                    );
+                // Check the new Binance Alpha API response format with 2-day data
+                if (data.success && data.volumeToday !== undefined && data.price !== undefined) {
+                    // Update volume and price on server
+                    const updateResponse = await fetch(`/api/tokens/${tokenId}/volume`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            volumeToday: data.volumeToday,
+                            volumeYesterday: data.volumeYesterday, // Include yesterday's volume
+                            price: data.price, // Include price for totalPrize calculation
+                            adminPassword
+                        })
+                    });
                     
-                    if (rank1Cex) {
-                        // Update volume and price on server
-                        const updateResponse = await fetch(`/api/tokens/${tokenId}/volume`, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                volume: rank1Cex.volumeUsd,
-                                price: rank1Cex.price, // Include price for totalPrize calculation
-                                adminPassword
-                            })
-                        });
-                        
-                        if (updateResponse.ok) {
-                            await loadTokensFromServer(); // Reload all data
-                        } else {
-                            throw new Error('Failed to update volume on server');
-                        }
+                    if (updateResponse.ok) {
+                        await loadTokensFromServer(); // Reload all data
                     } else {
-                        throw new Error('No rank 1 CEX data found');
+                        throw new Error('Failed to update volume on server');
                     }
                 } else {
-                    throw new Error('No market data found');
+                    throw new Error(data.message || 'No volume data found');
                 }
                 
             } catch (error) {
@@ -1287,7 +1336,7 @@
                 reportContent += `Top Volume Today:     ${formatCurrencyPlain(token.topToday)}\n`;
                 reportContent += `Top Volume Yesterday: ${formatCurrencyPlain(token.topYesterday)}\n`;
                 reportContent += `Top Volume Difference: ${formatCurrencyPlain(topDifference)} (${topDifferencePercent}%)\n`;
-                reportContent += `Last Updated: ${token.lastUpdated ? new Date(token.lastUpdated).toLocaleString() : 'Never'}\n`;
+                reportContent += `Last Updated: ${token.lastUpdated ? formatToUTC7(token.lastUpdated) : 'Never'}\n`;
                 
                 // Add blank line between tokens if there are multiple
                 if (index < ongoingTokens.length - 1) {
@@ -1370,7 +1419,7 @@
                 reportContent += `Token Amount:     ${formatNumberPlain(amount)}\n`;
                 reportContent += `Current Price:    ${formatCurrencyPlain(currentPrice)}\n`;
                 reportContent += `Total Prize:      ${formatCurrencyPlain(totalPrize)}\n`;
-                reportContent += `Last Updated:     ${token.lastUpdated ? new Date(token.lastUpdated).toLocaleString() : 'Never'}\n`;
+                reportContent += `Last Updated:     ${token.lastUpdated ? formatToUTC7(token.lastUpdated) : 'Never'}\n`;
                 
                 if (totalPrize > 0) {
                     totalPrizePool += totalPrize;
@@ -1603,11 +1652,11 @@
 
         // Generate a single history row
         function generateHistoryRow(entry) {
-            const date = new Date(entry.timestamp).toLocaleDateString();
-            const time = new Date(entry.timestamp).toLocaleTimeString();
+            const utc7DateTime = formatToUTC7(entry.timestamp);
+            const [date, time] = utc7DateTime.split(', ');
             const value = formatCurrency(entry.value);
-            const previousValue = entry.previousValue ? formatCurrency(entry.previousValue) : 'N/A';
-            const change = entry.previousValue ? getComparison(entry.previousValue, entry.value) : '-';
+            const previousValue = (entry.previousValue !== null && entry.previousValue !== undefined) ? formatCurrency(entry.previousValue) : 'N/A';
+            const change = (entry.previousValue !== null && entry.previousValue !== undefined) ? getComparison(entry.previousValue, entry.value) : '-';
             const type = entry.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
             
             return `

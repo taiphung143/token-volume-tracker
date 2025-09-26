@@ -753,9 +753,9 @@
       "slug": "portaltobitcoin",
       "topToday": 1018897,
       "topYesterday": 581250,
-      "volumeToday": 19341361.88928465,
+      "volumeToday": 19318092.34547071,
       "volumeYesterday": 781039639.3628929,
-      "lastUpdated": "2025-09-23T18:30:28.570Z",
+      "lastUpdated": "2025-09-23T18:15:23.806Z",
       "topVolumeHistory": [
         {
           "date": "2025-09-21",
@@ -1096,19 +1096,12 @@
           "previousValue": 19276188.98823515,
           "timestamp": "2025-09-23T18:15:23.806Z",
           "type": "daily_fetch_2day"
-        },
-        {
-          "date": "2025-09-24",
-          "value": 19341361.88928465,
-          "previousValue": 19318092.34547071,
-          "timestamp": "2025-09-23T18:30:28.570Z",
-          "type": "api_fetch_2day"
         }
       ],
       "status": "ongoing",
       "amount": 1300,
-      "currentPrice": 0.05405514,
-      "totalPrize": 70.271682
+      "currentPrice": 0.05532799,
+      "totalPrize": 71.926387
     },
     {
       "id": 1758363199720,
@@ -1116,9 +1109,9 @@
       "slug": "privasea-ai",
       "topToday": 153086,
       "topYesterday": 19183,
-      "volumeToday": 581284.4554898,
+      "volumeToday": 579421.07094933,
       "volumeYesterday": 783655885.8362768,
-      "lastUpdated": "2025-09-23T18:30:25.620Z",
+      "lastUpdated": "2025-09-23T18:15:23.806Z",
       "topVolumeHistory": [
         {
           "date": "2025-09-21",
@@ -1459,19 +1452,12 @@
           "previousValue": 574283.84124713,
           "timestamp": "2025-09-23T18:15:23.806Z",
           "type": "daily_fetch_2day"
-        },
-        {
-          "date": "2025-09-24",
-          "value": 581284.4554898,
-          "previousValue": 579421.07094933,
-          "timestamp": "2025-09-23T18:30:25.620Z",
-          "type": "api_fetch_2day"
         }
       ],
       "status": "ongoing",
       "amount": 3846,
-      "currentPrice": 0.02357511,
-      "totalPrize": 90.66987306
+      "currentPrice": 0.02309113,
+      "totalPrize": 88.80848598
     },
     {
       "id": 1758363239984,
@@ -1556,9 +1542,9 @@
       "slug": "sidekick-fans",
       "topToday": 1,
       "topYesterday": 1,
-      "volumeToday": 2944850918.968014,
+      "volumeToday": 2944804658.005128,
       "volumeYesterday": 396020690.7715839,
-      "lastUpdated": "2025-09-23T18:30:23.397Z",
+      "lastUpdated": "2025-09-23T18:15:23.806Z",
       "topVolumeHistory": [
         {
           "date": "2025-09-21",
@@ -1878,26 +1864,12 @@
           "previousValue": 2944742812.3401704,
           "timestamp": "2025-09-23T18:15:23.806Z",
           "type": "daily_fetch_2day"
-        },
-        {
-          "date": "2025-09-24",
-          "value": 2944850918.968014,
-          "previousValue": 2944804658.005128,
-          "timestamp": "2025-09-23T18:30:21.347Z",
-          "type": "api_fetch_2day"
-        },
-        {
-          "date": "2025-09-24",
-          "value": 2944850918.968014,
-          "previousValue": 2944850918.968014,
-          "timestamp": "2025-09-23T18:30:23.397Z",
-          "type": "api_fetch_2day"
         }
       ],
       "status": "ongoing",
       "amount": 520,
-      "currentPrice": 0.15882998,
-      "totalPrize": 82.5915896
+      "currentPrice": 0.1595719,
+      "totalPrize": 82.97738799999999
     },
     {
       "id": 1758476719978,
@@ -2797,5 +2769,5 @@
       ]
     }
   ],
-  "lastUpdated": "2025-09-23T18:30:28.570Z"
+  "lastUpdated": "2025-09-23T18:15:23.806Z"
 }
